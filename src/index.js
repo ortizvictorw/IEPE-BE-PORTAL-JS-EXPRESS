@@ -18,16 +18,18 @@ const app = express();
   }
 })();
 
-app.use(express.json({ extended: false }));
+// Set the limits once
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cors());
 
 // Servicios
 const createMember = async (req, res) => {
     try {
         const member = req.body;
-        
         // Verificar si ya existe un miembro con el mismo DNI
         const existingMember = await memberRepository.findById(member.dni);
+        console.log(existingMember)
         if (existingMember) {
             return res.status(400).json({ message: 'El número de DNI ya está en uso.' });
         }
@@ -39,7 +41,6 @@ const createMember = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-
 
 const getMembers = async (_req, res) => {
     try {
