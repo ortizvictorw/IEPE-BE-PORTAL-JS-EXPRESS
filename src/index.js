@@ -25,6 +25,14 @@ app.use(cors());
 const createMember = async (req, res) => {
     try {
         const member = req.body;
+        
+        // Verificar si ya existe un miembro con el mismo DNI
+        const existingMember = await memberRepository.findOne({ dni: member.dni });
+        if (existingMember) {
+            return res.status(400).json({ message: 'El número de DNI ya está en uso.' });
+        }
+
+        // Si no hay un miembro con el mismo DNI, guardar el nuevo miembro
         const savedMember = await memberRepository.save(member);
         res.status(201).json(savedMember);
     } catch (error) {
@@ -32,10 +40,10 @@ const createMember = async (req, res) => {
     }
 };
 
+
 const getMembers = async (_req, res) => {
     try {
         const members = await memberRepository.find();
-        console.log(members);
         res.status(200).json(members);
     } catch (error) {
         res.status(500).json({ message: error.message });
