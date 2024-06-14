@@ -5,7 +5,7 @@ const {
     getMemberById,
     updateMember,
     deleteMember
-} = require('../src/services/member.service');
+} = require('../services/member.service');
 
 const router = express.Router();
 
