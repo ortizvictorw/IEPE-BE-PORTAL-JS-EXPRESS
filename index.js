@@ -22,7 +22,6 @@ app.use(express.json({ extended: false }));
 app.use(cors());
 
 // Rutas
-app.use('/', indexRouter);
 app.use('/members', memberRouter);
 
 const PORT = process.env.PORT || 3000;
