@@ -27,7 +27,7 @@ const createMember = async (req, res) => {
         const member = req.body;
         
         // Verificar si ya existe un miembro con el mismo DNI
-        const existingMember = await memberRepository.findOne({ dni: member.dni });
+        const existingMember = await memberRepository.findById({ dni: member.dni });
         if (existingMember) {
             return res.status(400).json({ message: 'El número de DNI ya está en uso.' });
         }
