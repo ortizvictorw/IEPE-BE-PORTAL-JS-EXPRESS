@@ -21,9 +21,7 @@ const app = express();
 // Set the limits once
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-app.use(cors({
-    origin: 'https://iepe-portal.vercel.app', // Reemplaza con tu origen permitido
-}));
+app.use(cors());
 
 // Servicios
 const createMember = async (req, res) => {
@@ -44,9 +42,10 @@ const createMember = async (req, res) => {
     }
 };
 
-const getMembers = async (_req, res) => {
+const getMembers = async (req, res) => {
+    const { page = 1, limit = 10 } = req.query;
     try {
-        const members = await memberRepository.find();
+        const members = await memberRepository.find(page,limit);
         res.status(200).json(members);
     } catch (error) {
         res.status(500).json({ message: error.message });

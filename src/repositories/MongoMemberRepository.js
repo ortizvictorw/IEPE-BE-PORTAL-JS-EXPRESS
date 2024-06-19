@@ -5,9 +5,18 @@ class MongoMemberRepository {
         return Promise.reject(new Error('Method not implemented.'));
     }
 
-    async find() {
-        const members = await MemberModel.find();
-        return members;
+    async find(page, limit = 10) {
+        const skip = (page - 1) * limit;
+        const members = await MemberModel.find()
+            .skip(skip)
+            .limit(limit)
+        const total = await MemberModel.countDocuments(); // Obtiene el conteo total de documentos
+        return {
+            members,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit)
+        };
     }
 
     async findById(dni) {
