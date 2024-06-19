@@ -5,20 +5,25 @@ class MongoMemberRepository {
         return Promise.reject(new Error('Method not implemented.'));
     }
 
-    async find(page, limit = 10) {
-        const skip = (page - 1) * limit;
+    async find(page) {
+        const pageSize = 10; // Tamaño de página, puedes ajustarlo según tus necesidades
+        const skip = page * pageSize; // Cálculo de skip considerando la indexación base 0
+    
         const members = await MemberModel.find()
             .skip(skip)
-            .limit(limit)
+            .limit(pageSize);
+    
         const total = await MemberModel.countDocuments(); // Obtiene el conteo total de documentos
+    
         return {
             members,
             total,
             page,
-            totalPages: Math.ceil(total / limit)
+            totalPages: Math.ceil(total / pageSize)
         };
     }
-
+    
+    
     async findById(dni) {
         const member = await MemberModel.findOne({ dni });
         return member;

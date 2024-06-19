@@ -11,9 +11,10 @@ const createMember = async (req, res) => {
     }
 };
 
-const getMembers = async (_req, res) => {
+const getMembers = async (req, res) => {
     try {
-        const members = await memberRepository.find();
+        console.log(req)
+        const members = await memberRepository.find(req);
         res.status(200).json(members);
     } catch (error) {
         res.status(500).json({ message: error.message });

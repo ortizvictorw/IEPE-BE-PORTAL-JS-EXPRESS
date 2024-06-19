@@ -43,9 +43,9 @@ const createMember = async (req, res) => {
 };
 
 const getMembers = async (req, res) => {
-    const { page = 1, limit = 10 } = req.query;
+    const { page } = req.query;
     try {
-        const members = await memberRepository.find(page,limit);
+        const members = await memberRepository.find(page);
         res.status(200).json(members);
     } catch (error) {
         res.status(500).json({ message: error.message });
