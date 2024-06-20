@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const memberSchema = new Schema({
-  dni: { type: String, required: true },
+  dni: { index:true, type: String, required: true},
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   avatar: { type: String, required: false },
