@@ -6,7 +6,7 @@ class MongoMemberRepository {
     }
 
     async find(page) {
-        const pageSize = 10; // Tamaño de página, puedes ajustarlo según tus necesidades
+        const pageSize = 5; // Tamaño de página, puedes ajustarlo según tus necesidades
         const skip = page * pageSize; // Cálculo de skip considerando la indexación base 0
     
         const members = await MemberModel.find()
