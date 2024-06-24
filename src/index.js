@@ -43,14 +43,20 @@ const createMember = async (req, res) => {
 };
 
 const getMembers = async (req, res) => {
-    const { page } = req.query;
+    const { page, filter } = req.query;
     try {
-        const members = await memberRepository.find(page);
+        let members;
+        if (filter) {
+            members = await memberRepository.findByFilter(filter, page);
+        } else {
+            members = await memberRepository.find(page);
+        }
         res.status(200).json(members);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
+
 
 const getMemberById = async (req, res) => {
     try {
@@ -87,6 +93,9 @@ const deleteMember = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+
+
 
 // Rutas
 app.post('/members', createMember);
