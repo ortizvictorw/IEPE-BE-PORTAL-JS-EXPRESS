@@ -116,14 +116,16 @@ const generateCredential = async (req, res) => {
     // Retrieve the image from the filesystem using Jimp
     const imagePath = path.join(__dirname, 'public/static/logo.png');
     const imageLogo = await Jimp.read(imagePath);
-    const logoBuffer = await imageLogo.getBufferAsync(Jimp.MIME_PNG);
+    imageLogo.resize(100, 100); // Redimensionar logo a 100x100 píxeles
+    const logoBuffer = await imageLogo.quality(60).getBufferAsync(Jimp.MIME_PNG); // Reducir calidad al 60%
     const logoBase64 = logoBuffer.toString('base64');
     const logoDataURL = `data:image/png;base64,${logoBase64}`;
 
     if (!member.avatar) {
       const imagePathDefault = path.join(__dirname, 'public/static/default.jpg');
       const imageDefault = await Jimp.read(imagePathDefault);
-      const logoBufferDefault = await imageDefault.getBufferAsync(Jimp.MIME_PNG);
+      imageDefault.resize(100, 100); // Redimensionar avatar a 100x100 píxeles
+      const logoBufferDefault = await imageDefault.quality(60).getBufferAsync(Jimp.MIME_PNG); // Reducir calidad al 60%
       const logoBase64Default = logoBufferDefault.toString('base64');
       avatarDefault = `data:image/png;base64,${logoBase64Default}`;
     }
@@ -141,7 +143,11 @@ const generateCredential = async (req, res) => {
       .replace('{member.firstName}', member.firstName)
       .replace('{member.position}', member.position !== "MIEMBRO" ? `<li>SERVICIO: ${member.position} </li>` : "");
 
-    const image = await nodeHtmlToImage({ html: html });
+    const image = await nodeHtmlToImage({
+      html: html,
+      type: 'png',
+      quality: 60 // Reducir calidad al 60%
+    });
 
     res.status(200).json({ image: image.toString('base64') });
   } catch (error) {
@@ -149,6 +155,7 @@ const generateCredential = async (req, res) => {
     res.status(500).send('Error generating images');
   }
 };
+
 
 // Rutas
 app.post('/members', createMember);
