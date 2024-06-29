@@ -9,6 +9,7 @@ const QRCode = require('qrcode');
 const fs = require('fs');
 const path = require('path');
 const Jimp = require('jimp');
+const puppeteer = require('puppeteer');
 
 dotenv.config({ path: '.env' });
 
@@ -108,10 +109,6 @@ const generateCredential = async (req, res) => {
     const { dni } = req.params;
     const member = await memberRepository.findById(dni);
 
-    if (!member) {
-      return res.status(404).json({ message: 'Member not found' });
-    }
-
     let avatarDefault;
 
     const qrUrl = `${process.env.URL_BASE_FRONT}/members/status/${dni}`;
@@ -144,19 +141,19 @@ const generateCredential = async (req, res) => {
       .replace('{member.firstName}', member.firstName)
       .replace('{member.position}', member.position !== "MIEMBRO" ? `<li>SERVICIO: ${member.position} </li>` : "");
 
-    const image = await nodeHtmlToImage({
-      html: html,
-      type: 'png',
-      quality: 60
-    });
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+    await page.setContent(html);
+    const image = await page.screenshot({ type: 'png', quality: 60 });
+
+    await browser.close();
 
     res.status(200).json({ image: image.toString('base64') });
   } catch (error) {
-    console.error('Error generating credential:', error); // Enhanced error logging
-    res.status(500).send('Error generating credential');
+    console.error('Error generating images:', error);
+    res.status(500).send('Error generating images');
   }
 };
-
 
 
 // Rutas

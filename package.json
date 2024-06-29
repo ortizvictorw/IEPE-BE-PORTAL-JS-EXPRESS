@@ -21,6 +21,7 @@
     "mongoose": "^8.4.3",
     "morgan": "~1.9.1",
     "node-html-to-image": "^4.0.0",
+    "puppeteer": "^22.12.1",
     "qrcode": "^1.5.3",
     "sharp": "^0.33.4"
   },
