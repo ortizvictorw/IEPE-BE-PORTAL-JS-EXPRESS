@@ -28,7 +28,7 @@ app.use(express.json({ limit: '10mb' })); // Reduce limit if possible
 app.use(express.urlencoded({ limit: '10mb', extended: true })); // Reduce limit if possible
 
 app.use(cors({
-  origin: process.env.URL_BASE_FRONT,
+  origin: '*',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   optionsSuccessStatus: 204
@@ -108,33 +108,34 @@ const generateCredential = async (req, res) => {
     const { dni } = req.params;
     const member = await memberRepository.findById(dni);
 
+    if (!member) {
+      return res.status(404).json({ message: 'Member not found' });
+    }
+
     let avatarDefault;
 
     const qrUrl = `${process.env.URL_BASE_FRONT}/members/status/${dni}`;
     const qr = await QRCode.toDataURL(qrUrl);
 
-    // Retrieve the image from the filesystem using Jimp
     const imagePath = path.join(__dirname, 'public/static/logo.png');
     const imageLogo = await Jimp.read(imagePath);
-    imageLogo.resize(100, 100); // Redimensionar logo a 100x100 píxeles
-    const logoBuffer = await imageLogo.quality(60).getBufferAsync(Jimp.MIME_PNG); // Reducir calidad al 60%
+    imageLogo.resize(100, 100);
+    const logoBuffer = await imageLogo.quality(60).getBufferAsync(Jimp.MIME_PNG);
     const logoBase64 = logoBuffer.toString('base64');
     const logoDataURL = `data:image/png;base64,${logoBase64}`;
 
     if (!member.avatar) {
       const imagePathDefault = path.join(__dirname, 'public/static/default.jpg');
       const imageDefault = await Jimp.read(imagePathDefault);
-      imageDefault.resize(100, 100); // Redimensionar avatar a 100x100 píxeles
-      const logoBufferDefault = await imageDefault.quality(60).getBufferAsync(Jimp.MIME_PNG); // Reducir calidad al 60%
+      imageDefault.resize(100, 100);
+      const logoBufferDefault = await imageDefault.quality(60).getBufferAsync(Jimp.MIME_PNG);
       const logoBase64Default = logoBufferDefault.toString('base64');
       avatarDefault = `data:image/png;base64,${logoBase64Default}`;
     }
 
-    // Read HTML template from file
     const templatePath = path.join(__dirname, 'resources/templates/template.html');
     const htmlTemplate = fs.readFileSync(templatePath, 'utf8');
 
-    // Replace placeholders in the HTML template
     const html = htmlTemplate
       .replace('{logoDataURL}', logoDataURL)
       .replace('{member.avatar}', member.avatar ? member.avatar : avatarDefault)
@@ -146,15 +147,16 @@ const generateCredential = async (req, res) => {
     const image = await nodeHtmlToImage({
       html: html,
       type: 'png',
-      quality: 60 // Reducir calidad al 60%
+      quality: 60
     });
 
     res.status(200).json({ image: image.toString('base64') });
   } catch (error) {
-    console.error('Error generating images:', error);
-    res.status(500).send('Error generating images');
+    console.error('Error generating credential:', error); // Enhanced error logging
+    res.status(500).send('Error generating credential');
   }
 };
+
 
 
 // Rutas
