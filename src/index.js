@@ -114,7 +114,7 @@ const generateCredential = async (req, res) => {
     const qr = await QRCode.toDataURL(qrUrl);
 
     // Retrieve the image from the filesystem using Jimp
-    const imagePath = path.join(__dirname, 'public/static/logo.png');
+/*     const imagePath = path.join(__dirname, 'public/static/logo.png');
     const imageLogo = await Jimp.read(imagePath);
     imageLogo.resize(100, 100); // Redimensionar logo a 100x100 píxeles
     const logoBuffer = await imageLogo.quality(60).getBufferAsync(Jimp.MIME_PNG); // Reducir calidad al 60%
@@ -128,7 +128,7 @@ const generateCredential = async (req, res) => {
       const logoBufferDefault = await imageDefault.quality(60).getBufferAsync(Jimp.MIME_PNG); // Reducir calidad al 60%
       const logoBase64Default = logoBufferDefault.toString('base64');
       avatarDefault = `data:image/png;base64,${logoBase64Default}`;
-    }
+    } */
 
     // Read HTML template from file
     const templatePath = path.join(__dirname, 'resources/templates/template.html');
@@ -136,7 +136,7 @@ const generateCredential = async (req, res) => {
 
     // Replace placeholders in the HTML template
     const html = htmlTemplate
-      .replace('{logoDataURL}', logoDataURL)
+      .replace('{logoDataURL}', 'logoDataURL')
       .replace('{member.avatar}', member.avatar ? member.avatar : avatarDefault)
       .replace('{qr}', qr)
       .replace('{member.lastName}', member.lastName)
