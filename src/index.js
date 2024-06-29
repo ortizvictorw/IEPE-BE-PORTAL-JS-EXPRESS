@@ -26,7 +26,12 @@ const app = express();
 // Set the limits once
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-app.use(cors());
+app.use(cors({
+  origin: 'https://iepe-portal.vercel.app', // Replace with your actual front-end URL
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+  optionsSuccessStatus: 204
+}));
 
 // Servicios
 const createMember = async (req, res) => {
