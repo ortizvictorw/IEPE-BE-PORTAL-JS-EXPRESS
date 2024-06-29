@@ -24,10 +24,11 @@ const app = express();
 })();
 
 // Set the limits once
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json({ limit: '10mb' })); // Reduce limit if possible
+app.use(express.urlencoded({ limit: '10mb', extended: true })); // Reduce limit if possible
+
 app.use(cors({
-  origin: '*',
+  origin: process.env.URL_BASE_FRONT,
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   optionsSuccessStatus: 204
