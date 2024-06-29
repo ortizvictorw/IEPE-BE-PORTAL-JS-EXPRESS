@@ -141,17 +141,18 @@ const generateCredential = async (req, res) => {
       .replace('{member.firstName}', member.firstName)
       .replace('{member.position}', member.position !== "MIEMBRO" ? `<li>SERVICIO: ${member.position} </li>` : "");
 
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
     await page.setContent(html);
     const image = await page.screenshot({ type: 'png', quality: 60 });
 
+    await page.close();
     await browser.close();
 
     res.status(200).json({ image: image.toString('base64') });
   } catch (error) {
-    console.error('Error generating images:', error);
-    res.status(500).send('Error generating images');
+    console.error('Error generando imágenes:', error);
+    res.status(500).send('Error generando imágenes');
   }
 };
 
