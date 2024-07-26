@@ -11,6 +11,9 @@ const path = require('path');
 const Jimp = require('jimp');
 const puppeteer = require('puppeteer');
 
+const mongoose = require('mongoose');
+const XLSX = require('xlsx');
+
 dotenv.config({ path: '.env' });
 
 const app = express();
@@ -104,6 +107,38 @@ const deleteMember = async (req, res) => {
   }
 };
 
+const exportarDB = async (req, res) => {
+  try {
+    // Obtén los datos de la colección, omitiendo `_id` y `avatar`
+    const datos = await memberRepository.findLean();
+
+    // Verifica que `datos` sea un array
+    if (!Array.isArray(datos)) {
+      return res.status(500).json({ message: 'Error: Los datos no son un array.' });
+    }
+
+    // Crea una nueva hoja de cálculo
+    const hoja = XLSX.utils.json_to_sheet(datos);
+
+    // Crea un libro de trabajo y agrega la hoja
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, 'Datos');
+
+    // Genera el archivo Excel en formato binario
+    const archivoExcel = XLSX.write(libro, { bookType: 'xlsx', type: 'buffer' });
+
+    // Configura la respuesta HTTP
+    res.setHeader('Content-Disposition', 'attachment; filename=exportacion.xlsx');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.send(archivoExcel);
+    console.log('Exportación completada con éxito.');
+  } catch (error) {
+    console.error('Error al exportar:', error);
+    res.status(500).json({ message: 'Error al exportar' });
+  }
+}
+
+
 const generateCredential = async (req, res) => {
   try {
     const { dni } = req.params;
@@ -162,6 +197,7 @@ const generateCredential = async (req, res) => {
 // Rutas
 app.post('/members', createMember);
 app.get('/members', getMembers);
+app.get('/members/export', exportarDB)
 app.get('/members/generate-credential/:dni', generateCredential);
 app.get('/members/:id', getMemberById);
 app.put('/members/:id', updateMember);

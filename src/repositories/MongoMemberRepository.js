@@ -1,9 +1,41 @@
 const MemberModel = require('../configurations/schemas/member/Member.schema');
 
 class MongoMemberRepository {
+
+
+    async exportEXCEL(){
+            try {
+              // Obtén los datos de la colección
+              const datos = await MiModelo.find().lean();
+          
+              // Crea una nueva hoja de cálculo
+              const hoja = XLSX.utils.json_to_sheet(datos);
+          
+              // Crea un libro de trabajo y agrega la hoja
+              const libro = XLSX.utils.book_new();
+              XLSX.utils.book_append_sheet(libro, hoja, 'Datos');
+          
+              // Escribe el archivo Excel
+              XLSX.writeFile(libro, 'exportacion.xlsx');
+              console.log('Exportación completada con éxito.');
+            } catch (error) {
+              console.error('Error al exportar:', error);
+            } finally {
+              mongoose.connection.close();
+            }
+          
+    }
+
     generateCredential() {
         return Promise.reject(new Error('Method not implemented.'));
     }
+
+
+    async findLean() {
+        const members = await MemberModel.find().select('-avatar -_id -__v').lean();
+        return members;
+    }
+
 
     async find(page) {
         const pageSize = 5; // Tamaño de página, puedes ajustarlo según tus necesidades
@@ -48,7 +80,8 @@ class MongoMemberRepository {
         return {
             members,
             total: totalMembers,
-            totalPages
+            totalPages,
+            currentPage: pageNumber
         };
     }
 
