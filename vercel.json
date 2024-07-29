@@ -11,11 +11,5 @@
       "src": "/(.*)",
       "dest": "src/index.js"
     }
-  ],
-  "functions": {
-    "src/index.js": {
-      "memory": 3009,
-      "maxDuration": 30
-    }
-  }
+  ]
 }

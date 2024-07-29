@@ -1,7 +1,7 @@
 {
-  "name": "express-vercel",
+  "name": "iepe-memebers",
   "version": "1.0.0",
-  "description": "Deploy express js to vercel.",
+  "description": "Api para iepe",
   "main": "index.js",
   "scripts": {
     "start": "node --max-old-space-size=1024 src/index.js"

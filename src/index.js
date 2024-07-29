@@ -2,16 +2,14 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const db = require('./configurations/db.config');
-const MongoMemberRepository = require('./repositories/MongoMemberRepository');
+const MongoMemberRepository = require('./repositories/member.repository');
 const memberRepository = new MongoMemberRepository();
-const nodeHtmlToImage = require('node-html-to-image');
 const QRCode = require('qrcode');
 const fs = require('fs');
 const path = require('path');
 const Jimp = require('jimp');
 const puppeteer = require('puppeteer');
 
-const mongoose = require('mongoose');
 const XLSX = require('xlsx');
 
 dotenv.config({ path: '.env' });

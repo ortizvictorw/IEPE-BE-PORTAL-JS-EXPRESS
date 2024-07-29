@@ -30,12 +30,10 @@ class MongoMemberRepository {
         return Promise.reject(new Error('Method not implemented.'));
     }
 
-
     async findLean() {
         const members = await MemberModel.find().select('-avatar -_id -__v').lean();
         return members;
     }
-
 
     async find(page) {
         const pageSize = 5; // Tamaño de página, puedes ajustarlo según tus necesidades
