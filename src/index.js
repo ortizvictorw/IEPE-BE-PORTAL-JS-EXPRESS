@@ -1,18 +1,21 @@
 const express = require('express');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const db = require('./configurations/db.config');
-const MongoMemberRepository = require('./repositories/member.repository');
-const memberRepository = new MongoMemberRepository();
-const QRCode = require('qrcode');
 const fs = require('fs');
+const dotenv = require('dotenv');
+dotenv.config({ path: '.env' });
+const cors = require('cors');
+const QRCode = require('qrcode');
 const path = require('path');
 const Jimp = require('jimp');
 const puppeteer = require('puppeteer');
-
 const XLSX = require('xlsx');
 
-dotenv.config({ path: '.env' });
+const db = require('./configurations/db.config');
+
+const MongoMemberRepository = require('./repositories/member.repository');
+const MongoServicesRepository = require('./repositories/services.repository');
+
+const memberRepository = new MongoMemberRepository();
+const servicesRepository = new MongoServicesRepository();
 
 const app = express();
 
@@ -25,9 +28,8 @@ const app = express();
   }
 })();
 
-// Set the limits once
-app.use(express.json({ limit: '10mb' })); // Reduce limit if possible
-app.use(express.urlencoded({ limit: '10mb', extended: true })); // Reduce limit if possible
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true })); 
 
 app.use(cors({
   origin: '*',
@@ -36,7 +38,8 @@ app.use(cors({
   optionsSuccessStatus: 204
 }));
 
-// Servicios
+
+/* MEMBERS */
 const createMember = async (req, res) => {
   try {
     const member = req.body;
@@ -63,6 +66,15 @@ const getMembers = async (req, res) => {
     } else {
       members = await memberRepository.find(page);
     }
+    res.status(200).json(members);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getMembersSummary = async (req, res) => {
+  try {
+    const members = await memberRepository.findSummary();
     res.status(200).json(members);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -104,38 +116,6 @@ const deleteMember = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
-const exportarDB = async (req, res) => {
-  try {
-    // Obtén los datos de la colección, omitiendo `_id` y `avatar`
-    const datos = await memberRepository.findLean();
-
-    // Verifica que `datos` sea un array
-    if (!Array.isArray(datos)) {
-      return res.status(500).json({ message: 'Error: Los datos no son un array.' });
-    }
-
-    // Crea una nueva hoja de cálculo
-    const hoja = XLSX.utils.json_to_sheet(datos);
-
-    // Crea un libro de trabajo y agrega la hoja
-    const libro = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(libro, hoja, 'Datos');
-
-    // Genera el archivo Excel en formato binario
-    const archivoExcel = XLSX.write(libro, { bookType: 'xlsx', type: 'buffer' });
-
-    // Configura la respuesta HTTP
-    res.setHeader('Content-Disposition', 'attachment; filename=exportacion.xlsx');
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.send(archivoExcel);
-    console.log('Exportación completada con éxito.');
-  } catch (error) {
-    console.error('Error al exportar:', error);
-    res.status(500).json({ message: 'Error al exportar' });
-  }
-}
-
 
 const generateCredential = async (req, res) => {
   try {
@@ -191,15 +171,97 @@ const generateCredential = async (req, res) => {
     }
 };
 
+/* SERVICES */
+const createServices= async (req, res) => {
+  try {
+    const service = req.body;
+    const avatar = await getAvatarById(service.dni)
+    const date = new Date();
+    const savedService= await servicesRepository.save({...service, avatar, date});
+    res.status(201).json(savedService);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
-// Rutas
+const getServices = async (req, res) => {
+  const { page, filter } = req.query;
+  try {
+    let services;
+    if (filter) {
+      services = await servicesRepository.findByFilter(filter, page);
+    } else {
+      services = await servicesRepository.find(page);
+    }
+    res.status(200).json(services);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/* SHARED SERVICES */
+
+const exportDocuments = async (req, res) => {
+  try {
+    const datos = await selectedRepository(req.path);
+
+    if (!Array.isArray(datos)) {
+      return res.status(500).json({ message: 'Error: Los datos no son un array.' });
+    }
+
+    const hoja = XLSX.utils.json_to_sheet(datos);
+
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, 'Datos');
+
+    // Genera el archivo Excel en formato binario
+    const archivoExcel = XLSX.write(libro, { bookType: 'xlsx', type: 'buffer' });
+
+    // Configura la respuesta HTTP
+    res.setHeader('Content-Disposition', 'attachment; filename=exportacion.xlsx');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.send(archivoExcel);
+    console.log('Exportación completada con éxito.');
+  } catch (error) {
+    console.error('Error al exportar:', error);
+    res.status(500).json({ message: 'Error al exportar' });
+  }
+}
+
+/* UTILS */
+const selectedRepository = async (repositoryName) => {
+  let datos;
+
+  switch (repositoryName) {
+    case '/services/export':
+      datos = await servicesRepository.findLean();
+      break;
+
+    case '/members/export':
+      datos = await memberRepository.findLean();
+      break;
+
+    default:
+      datos = [];
+      break;
+  }
+  return datos;
+}
+
+// Rutas members
 app.post('/members', createMember);
 app.get('/members', getMembers);
-app.get('/members/export', exportarDB)
+app.get('/members/summary', getMembersSummary);
+app.get('/members/export', exportDocuments)
 app.get('/members/generate-credential/:dni', generateCredential);
 app.get('/members/:id', getMemberById);
 app.put('/members/:id', updateMember);
 app.delete('/members/:id', deleteMember);
+
+// Rutas services
+app.post('/services', createServices);
+app.get('/services', getServices);
+app.get('/services/export', exportDocuments)
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
