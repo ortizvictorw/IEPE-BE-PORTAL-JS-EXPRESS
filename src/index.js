@@ -8,6 +8,7 @@ const path = require('path');
 const Jimp = require('jimp');
 const puppeteer = require('puppeteer');
 const XLSX = require('xlsx');
+const compression =require('express-compression')
 
 const db = require('./configurations/db.config');
 
@@ -39,6 +40,11 @@ app.use(cors({
   credentials: true,
   optionsSuccessStatus: 204
 }));
+app.use(
+  compression({
+    brotli: { enabled: true, zlib: {} },
+  })
+);
 
 
 /* MEMBERS */

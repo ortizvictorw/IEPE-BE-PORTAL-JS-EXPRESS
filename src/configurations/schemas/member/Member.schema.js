@@ -3,8 +3,8 @@ const { Schema } = mongoose;
 
 const memberSchema = new Schema({
   dni: { index: true, type: String, required: true },
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
+  firstName: {index:true, type: String, required: true },
+  lastName: {index:true, type: String, required: true },
   avatar: { type: String, required: false },
   dateOfBirth: { type: Date, required: true },
   address: { type: String, required: true },
