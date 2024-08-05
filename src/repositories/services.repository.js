@@ -12,14 +12,17 @@ class MongoServicesRepository {
         const pageSize = 5; 
         const skip = page * pageSize; 
 
-        const members = await ServicesModel.find()
+        const services = await ServicesModel.find()
+            .select('-dni -_id -__v')
             .skip(skip)
-            .limit(pageSize);
+            .limit(pageSize)
+            .populate('member', 'dni avatar firstName lastName dateOfBirth -_id')
+            .exec();
 
         const total = await ServicesModel.countDocuments(); 
 
         return {
-            members,
+            services,
             total,
             page,
             totalPages: Math.ceil(total / pageSize)
@@ -39,12 +42,14 @@ class MongoServicesRepository {
         };
 
         const services = await ServicesModel.find(query)
+            .select('-dni -_id -__v')
             .skip(skip)
             .limit(perPage)
+            .populate('member', 'dni avatar firstName lastName dateOfBirth -_id')
             .exec();
 
         const totalServices = await ServicesModel.countDocuments(query);
-        const totalPages = Math.ceil(totalMembers / perPage);
+        const totalPages = Math.ceil(totalServices / perPage);
 
         return {
             services,
@@ -55,13 +60,34 @@ class MongoServicesRepository {
     }
 
     async findById(dni) {
-        const member = await ServicesModel.findOne({ dni });
-        return member;
+        try {
+            const service = await ServicesModel.findOne({ dni });
+            return service;
+            
+        } catch (error) {
+            console.log(error)
+            return error;
+          }
+            
     }
 
     async save(member) {
         const newMember = new ServicesModel(member);
         return await newMember.save();
+    }
+
+    async aprodev(id) {
+        try {
+            const service = await this.findById(id);
+            if (!service) throw new Error('Service not found');
+    
+            service.aproved = !service.aproved; 
+            return await service.save();
+            
+        } catch (error) {
+            console.log(error)
+            return error;
+        }
     }
 
 }

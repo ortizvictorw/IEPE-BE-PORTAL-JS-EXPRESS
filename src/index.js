@@ -13,6 +13,8 @@ const db = require('./configurations/db.config');
 
 const MongoMemberRepository = require('./repositories/member.repository');
 const MongoServicesRepository = require('./repositories/services.repository');
+const MemberModel = require('./configurations/schemas/member/Member.schema');
+const ServiceModel = require('./configurations/schemas/services/Services.schema');
 
 const memberRepository = new MongoMemberRepository();
 const servicesRepository = new MongoServicesRepository();
@@ -74,7 +76,7 @@ const getMembers = async (req, res) => {
 
 const getMembersSummary = async (req, res) => {
   try {
-    const members = await memberRepository.findSummary();
+    const members = await memberRepository.findSummary(req.query);
     res.status(200).json(members);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -175,9 +177,24 @@ const generateCredential = async (req, res) => {
 const createServices= async (req, res) => {
   try {
     const service = req.body;
-    const avatar = await getAvatarById(service.dni)
+    const avatar = await memberRepository.getAvatarById(service.dni);
     const date = new Date();
-    const savedService= await servicesRepository.save({...service, avatar, date});
+
+    // Encontrar al miembro por dni
+    const member = await MemberModel.findOne({ dni: service.dni });
+    if (!member) {
+      return res.status(404).json({ message: 'Member not found' });
+    }
+
+    // Crear y guardar el servicio
+    const newService = new ServiceModel({
+      ...service,
+      avatar,
+      date,
+      member: member._id // Referencia al miembro
+    });
+    const savedService = await newService.save();
+
     res.status(201).json(savedService);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -194,6 +211,21 @@ const getServices = async (req, res) => {
       services = await servicesRepository.find(page);
     }
     res.status(200).json(services);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+const aprovedService = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const member = await servicesRepository.aprodev(id);
+    if (member) {
+      res.status(200).json(member);
+    } else {
+      res.status(404).json({ message: 'Member not found' });
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -262,6 +294,7 @@ app.delete('/members/:id', deleteMember);
 app.post('/services', createServices);
 app.get('/services', getServices);
 app.get('/services/export', exportDocuments)
+app.put('/services/aproved/:id', aprovedService)
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));

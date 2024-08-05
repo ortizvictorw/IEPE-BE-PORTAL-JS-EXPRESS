@@ -83,7 +83,7 @@ class MongoMemberRepository {
         };
     }
 
-    async findSummary() {
+    async findSummary(filter) {
         const members = await MemberModel.find()
             .select('dni firstName lastName -_id')
             .sort({ lastName: 1, firstName: 1 });

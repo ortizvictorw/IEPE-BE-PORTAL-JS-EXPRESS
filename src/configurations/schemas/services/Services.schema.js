@@ -1,15 +1,15 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-const servicesSchema = new Schema({
-  dni: { index:true, type: String, required: true},
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
-  avatar: { type: String, required: false },
+const serviceSchema = new Schema({
+  dni: { type: String, index: true, unique: true, required: true },
   date: { type: Date, required: true },
   observations: { type: String, required: false },
+  member: { type: Schema.Types.ObjectId, ref: 'Member', required: true },
+  service:{ type: String, required: false },
+  aproved: { type: Boolean, required: false} 
 });
 
-const ServicesModel = mongoose.model('Services', servicesSchema);
+const ServiceModel = mongoose.model('Service', serviceSchema);
 
-module.exports = ServicesModel;
+module.exports = ServiceModel;
