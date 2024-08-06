@@ -1,7 +1,7 @@
 const MemberModel = require('../configurations/schemas/member/Member.schema');
-
+const ServicesModel = require('../configurations/schemas/services/Services.schema');
+const moment = require('moment');
 class MongoMemberRepository {
-
 
     async exportEXCEL() {
         try {
@@ -59,11 +59,10 @@ class MongoMemberRepository {
         const pageNumber = parseInt(page) || 1;
         const skip = (pageNumber - 1) * perPage;
 
-        // Utiliza tu lógica para buscar por nombre o DNI según el filtro
         const query = {
             $or: [
-                { firstName: { $regex: filter, $options: 'i' } }, // Búsqueda por nombre (case-insensitive)
-                { dni: { $regex: filter, $options: 'i' } } // Búsqueda por DNI (case-insensitive)
+                { firstName: { $regex: filter, $options: 'i' } },
+                { dni: { $regex: filter, $options: 'i' } }
             ]
         };
 
@@ -84,9 +83,94 @@ class MongoMemberRepository {
     }
 
     async findSummary(filter) {
-        const members = await MemberModel.find()
+        const dnis = [];
+        const query = {};
+
+        if (filter.status) {
+            query.status = filter.status;
+        }
+
+        if (filter.choirs === 'true') {
+            const services = await ServicesModel.find({ service: 'COROS' })
+                .select('dni -_id')
+            dnis.push(...services.map(x => x.dni))
+        }
+
+        if (filter.reflection === 'true') {
+            const services = await ServicesModel.find({ service: 'REFLEXION' })
+                .select('dni -_id')
+            dnis.push(...services.map(x => x.dni))
+
+        }
+
+        if (filter.preaching === 'true') {
+            const services = await ServicesModel.find({ service: 'PREDICACION' })
+                .select('dni -_id')
+            dnis.push(...services.map(x => x.dni))
+
+        }
+
+        if (filter.leadsleads === 'true') {
+            const services = await ServicesModel.find({ service: 'DIRIGE' })
+                .select('dni -_id')
+            dnis.push(...services.map(x => x.dni))
+
+        }
+
+        if (filter.work === 'true') {
+            const services = await ServicesModel.find({ service: 'OBRA' })
+                .select('dni -_id')
+            dnis.push(...services.map(x => x.dni))
+
+        }
+
+        if (filter.games === 'true') {
+            const services = await ServicesModel.find({ service: 'JUEGOS' })
+                .select('dni -_id')
+            dnis.push(...services.map(x => x.dni))
+
+        }
+
+        if (filter.greaterThanYear > 0) {
+            const yearsAgo = moment().subtract(filter.greaterThanYear, 'years').toDate();
+            query.dateOfBirth = { $lt: yearsAgo };
+        }
+
+        if (filter.lessThanYear > 0) {
+            const recentYears = moment().subtract(filter.lessThanYear, 'years').toDate();
+            if (!query.dateOfBirth) {
+                query.dateOfBirth = {};
+            }
+            query.dateOfBirth.$gt = recentYears;
+        }
+
+
+        if (filter.noServiceSince > 0) {
+            const monthsAgo = moment().subtract(filter.noServiceSince, 'months').toDate();
+            const recentServices = await ServicesModel.find({ date: { $gte: monthsAgo } }).select('dni -_id');
+            const recentDnis = recentServices.map(x => x.dni);
+
+            // Obtener todos los DNIs
+            const allDnis = (await ServicesModel.find().select('dni -_id')).map(x => x.dni);
+
+            // Filtrar los DNIs que no tienen servicios recientes
+            const noRecentServiceDnis = allDnis.filter(dni => !recentDnis.includes(dni));
+
+            dnis.push(...noRecentServiceDnis);
+        }
+
+        if (dnis.length > 0) {
+            query.dni = { $in: dnis };
+        }
+
+
+        const members = await MemberModel.find(query)
             .select('dni firstName lastName -_id')
-            .sort({ lastName: 1, firstName: 1 });
+            .sort({ lastName: 1, firstName: 1 })
+            .populate('services')
+            .exec();
+
+
         return {
             members,
         };

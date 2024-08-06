@@ -184,7 +184,7 @@ const createServices= async (req, res) => {
   try {
     const service = req.body;
     const avatar = await memberRepository.getAvatarById(service.dni);
-    const date = new Date();
+    const date = service.datenew ? service.datenew : Date();
 
     // Encontrar al miembro por dni
     const member = await MemberModel.findOne({ dni: service.dni });

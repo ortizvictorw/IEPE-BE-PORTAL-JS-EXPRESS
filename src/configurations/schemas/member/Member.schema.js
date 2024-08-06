@@ -16,6 +16,7 @@ const memberSchema = new Schema({
   maritalStatus: { type: String, required: true },
   locality: { type: String, required: true },
   observations: { type: String, required: false },
+  services: [{ type: Schema.Types.ObjectId, ref: 'Service' }]
 });
 
 const MemberModel = mongoose.model('Member', memberSchema);
