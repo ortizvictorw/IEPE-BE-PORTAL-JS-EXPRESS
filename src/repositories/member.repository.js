@@ -55,7 +55,7 @@ class MongoMemberRepository {
 
     // Ejemplo en MongoMemberRepository.js
     async findByFilter(filter, page) {
-        const perPage = 10; // Número de resultados por página
+        const perPage = 5; // Número de resultados por página
         const pageNumber = parseInt(page) || 1;
         const skip = (pageNumber - 1) * perPage;
 
@@ -178,6 +178,11 @@ class MongoMemberRepository {
 
     async findById(dni) {
         const member = await MemberModel.findOne({ dni });
+        return member;
+    }
+    
+    async findByFirstNameAndLastName(firstName,lastName){
+        const member = await MemberModel.findOne({ firstName,lastName });
         return member;
     }
 

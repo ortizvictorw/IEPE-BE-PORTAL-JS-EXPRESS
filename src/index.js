@@ -8,7 +8,7 @@ const path = require('path');
 const Jimp = require('jimp');
 const puppeteer = require('puppeteer');
 const XLSX = require('xlsx');
-const compression =require('express-compression')
+const compression = require('compression');
 
 const db = require('./configurations/db.config');
 
@@ -40,12 +40,24 @@ app.use(cors({
   credentials: true,
   optionsSuccessStatus: 204
 }));
-app.use(
+
+/* app.use(
   compression({
     brotli: { enabled: true, zlib: {} },
   })
-);
+); */
 
+/* PERFORMANCE COMPRESION*/
+app.use(compression({
+  level: 9, // Puedes ajustar el nivel de compresión entre 0 y 9.
+  threshold: 1000, // Solo comprimir respuestas mayores a 1 KB.
+  filter: (req, res) => {
+    // Puedes agregar una función de filtro personalizada si lo necesitas.
+    return compression.filter(req, res);
+  }
+}));
+
+/* PERFORMANCE */
 
 /* MEMBERS */
 const createMember = async (req, res) => {
@@ -65,6 +77,43 @@ const createMember = async (req, res) => {
   }
 };
 
+const createMemberServicesMasive = async (req, res) => {
+  try {
+    const services = req.body;
+
+    if (!Array.isArray(services)) {
+      return res.status(400).json({ message: 'La entrada debe ser un array de servicios.' });
+    }
+
+    const promises = services.map(async (service) => {
+      const existingMember = await memberRepository.findByFirstNameAndLastName(service.firstName, service.lastName);
+      const avatar = await memberRepository.getAvatarById(existingMember.dni);
+      const date = service.date ? new Date(service.date) : new Date();
+
+      // Encontrar al miembro por dni
+      const member = await MemberModel.findOne({ dni: existingMember.dni });
+
+      if (!member) {
+        throw new Error(`Member with DNI ${existingMember.dni} not found`);
+      }
+
+      const newService = new ServiceModel({
+        ...service,
+        avatar,
+        date,
+        member: member._id 
+      });
+
+      return await newService.save();
+    });
+
+    const savedServices = await Promise.all(promises);
+    res.status(201).json(savedServices);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 const getMembers = async (req, res) => {
   const { page, filter } = req.query;
   try {
@@ -76,6 +125,7 @@ const getMembers = async (req, res) => {
     }
     res.status(200).json(members);
   } catch (error) {
+    console.error(error)
     res.status(500).json({ message: error.message });
   }
 };
@@ -184,7 +234,7 @@ const createServices= async (req, res) => {
   try {
     const service = req.body;
     const avatar = await memberRepository.getAvatarById(service.dni);
-    const date = service.datenew ? service.datenew : Date();
+    const date = service.date ? new Date(service.date) : new Date();
 
     // Encontrar al miembro por dni
     const member = await MemberModel.findOne({ dni: service.dni });
@@ -298,6 +348,7 @@ app.delete('/members/:id', deleteMember);
 
 // Rutas services
 app.post('/services', createServices);
+app.post('/services/masive', createMemberServicesMasive);
 app.get('/services', getServices);
 app.get('/services/export', exportDocuments)
 app.put('/services/aproved/:id', aprovedService)
