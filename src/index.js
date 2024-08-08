@@ -257,6 +257,42 @@ const createServices= async (req, res) => {
   }
 };
 
+const deleteService = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await servicesRepository.delete(id);
+    res.status(200).json({ message: result });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getServiceById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const service = await servicesRepository.findById(id);
+    if (service) {
+      res.status(200).json(service);
+    } else {
+      res.status(404).json({ message: 'Member not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const updateService = async (req, res) => {
+  try {
+    const service = req.body;
+    const { id } = req.params;
+
+    const updatedMember = await servicesRepository.update(service,id);
+    res.status(200).json(updatedMember);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 const getServices = async (req, res) => {
   const { page, filter } = req.query;
   try {
@@ -351,7 +387,10 @@ app.post('/services', createServices);
 app.post('/services/masive', createMemberServicesMasive);
 app.get('/services', getServices);
 app.get('/services/export', exportDocuments)
+app.get('/services/:id', getServiceById);
 app.put('/services/aproved/:id', aprovedService)
+app.put('/services/:id', updateService);
+app.delete('/services/:id', deleteService);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
