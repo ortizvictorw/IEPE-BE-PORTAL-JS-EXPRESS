@@ -270,9 +270,9 @@ const deleteService = async (req, res) => {
 const getServiceById = async (req, res) => {
   try {
     const { id } = req.params;
-    const service = await servicesRepository.findById(id);
-    if (service) {
-      res.status(200).json(service);
+    const member = await servicesRepository.findById(id);
+    if (member) {
+      res.status(200).json(member);
     } else {
       res.status(404).json({ message: 'Member not found' });
     }
@@ -358,7 +358,7 @@ const selectedRepository = async (repositoryName) => {
 
   switch (repositoryName) {
     case '/services/export':
-      datos = await servicesRepository.findLean();
+      datos = await servicesRepository.transformServices();
       break;
 
     case '/members/export':

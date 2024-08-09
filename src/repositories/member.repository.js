@@ -65,7 +65,6 @@ class MongoMemberRepository {
                 { dni: { $regex: filter, $options: 'i' } }
             ]
         };
-        console.log(query)
 
         const members = await MemberModel.find(query)
             .skip(skip)
