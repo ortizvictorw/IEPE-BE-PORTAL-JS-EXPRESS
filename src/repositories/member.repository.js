@@ -53,6 +53,23 @@ class MongoMemberRepository {
         };
     }
 
+    async findMembersBirthday() {
+        const today = moment().format('MM-DD');
+    
+        const members = await MemberModel.find({
+            $expr: {
+                $and: [
+                    { $eq: [{ $dayOfMonth: "$dateOfBirth" }, moment().date()] },
+                    { $eq: [{ $month: "$dateOfBirth" }, moment().month() + 1] }
+                ]
+            }
+        });
+    
+        return {
+            members
+        };
+    }
+
     // Ejemplo en MongoMemberRepository.js
     async findByFilter(filter, page) {
         const perPage = 5; // Número de resultados por página
@@ -165,7 +182,7 @@ class MongoMemberRepository {
 
 
         const members = await MemberModel.find(query)
-            .select('dni firstName lastName -_id')
+            .select('dni firstName lastName -_id dateOfBirth')
             .sort({ lastName: 1, firstName: 1 })
             .populate('services')
             .exec();

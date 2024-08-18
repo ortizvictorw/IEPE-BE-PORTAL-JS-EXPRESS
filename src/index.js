@@ -130,6 +130,19 @@ const getMembers = async (req, res) => {
   }
 };
 
+
+
+const getMembersBirthday = async (req, res) => {
+  try {
+    let members;
+     members = await memberRepository.findMembersBirthday();
+    res.status(200).json(members);
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: error.message });
+  }
+};
+
 const getMembersSummary = async (req, res) => {
   try {
     const members = await memberRepository.findSummary(req.query);
@@ -375,12 +388,14 @@ const selectedRepository = async (repositoryName) => {
 // Rutas members
 app.post('/members', createMember);
 app.get('/members', getMembers);
+app.get('/members/birthday', getMembersBirthday);
 app.get('/members/summary', getMembersSummary);
 app.get('/members/export', exportDocuments)
 app.get('/members/generate-credential/:dni', generateCredential);
 app.get('/members/:id', getMemberById);
 app.put('/members/:id', updateMember);
 app.delete('/members/:id', deleteMember);
+
 
 // Rutas services
 app.post('/services', createServices);
