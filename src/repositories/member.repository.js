@@ -54,13 +54,14 @@ class MongoMemberRepository {
     }
 
     async findMembersBirthday() {
-        const today = moment().format('MM-DD');
+        // Establecer la zona horaria de Argentina
+        const today = moment().tz('America/Argentina/Buenos_Aires');
     
         const members = await MemberModel.find({
             $expr: {
                 $and: [
-                    { $eq: [{ $dayOfMonth: "$dateOfBirth" }, moment().date()] },
-                    { $eq: [{ $month: "$dateOfBirth" }, moment().month() + 1] }
+                    { $eq: [{ $dayOfMonth: "$dateOfBirth" }, today.date()] },
+                    { $eq: [{ $month: "$dateOfBirth" }, today.month() + 1] }
                 ]
             }
         });
