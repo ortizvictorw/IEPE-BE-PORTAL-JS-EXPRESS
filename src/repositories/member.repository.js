@@ -1,6 +1,6 @@
 const MemberModel = require('../configurations/schemas/member/Member.schema');
 const ServicesModel = require('../configurations/schemas/services/Services.schema');
-const moment = require('moment');
+const moment = require('moment-timezone');
 class MongoMemberRepository {
 
     async exportEXCEL() {
