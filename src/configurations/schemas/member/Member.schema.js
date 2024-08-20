@@ -16,6 +16,7 @@ const memberSchema = new Schema({
   maritalStatus: { type: String, required: true },
   locality: { type: String, required: true },
   observations: { type: String, required: false },
+  dataConfirmed: { type: Boolean, required: false, default: false },
   services: [{ type: Schema.Types.ObjectId, ref: 'Service' }]
 });
 
