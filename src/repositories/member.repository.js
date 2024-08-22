@@ -183,7 +183,7 @@ class MongoMemberRepository {
 
 
         const members = await MemberModel.find(query)
-            .select('dni firstName lastName -_id dateOfBirth')
+            .select('dni firstName lastName _id dateOfBirth')
             .sort({ lastName: 1, firstName: 1 })
             .populate('services')
             .exec();

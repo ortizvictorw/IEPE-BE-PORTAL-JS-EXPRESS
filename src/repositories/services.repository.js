@@ -86,7 +86,7 @@ class MongoServicesRepository {
 
             // Ejecutar la consulta para obtener los servicios
             const services = await ServicesModel.find(query)
-                .select('-dni -_id -__v') // Excluir campos innecesarios
+                .select('-dni -__v') // Excluir campos innecesarios
                 .sort({ date: -1 }) // Ordenar del más nuevo al más viejo
                 .skip(skip)
                 .limit(perPage)
