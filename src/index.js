@@ -14,11 +14,15 @@ const db = require('./configurations/db.config');
 
 const MongoMemberRepository = require('./repositories/member.repository');
 const MongoServicesRepository = require('./repositories/services.repository');
+const UserRepository = require('./repositories/user.repository');
+
 const MemberModel = require('./configurations/schemas/member/Member.schema');
 const ServiceModel = require('./configurations/schemas/services/Services.schema');
 
 const memberRepository = new MongoMemberRepository();
 const servicesRepository = new MongoServicesRepository();
+const userRepository = new UserRepository();
+
 
 const app = express();
 
@@ -384,6 +388,35 @@ const selectedRepository = async (repositoryName) => {
   }
   return datos;
 }
+// USER
+
+const registerUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const savedUser = await userRepository.create({email, password });
+    res.status(201).json({ message: 'User registered successfully', user: savedUser });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const loginUser = async (req, res) => {
+  try {
+    const { email,password } = req.body;
+    const {token , user} = await userRepository.login({email, password});
+
+    res.status(200).json({ message: 'Login successful', token, user });
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+// Rutas de usuario
+app.post('/register', registerUser);
+app.post('/login', loginUser);
+
 
 // Rutas members
 app.post('/members', createMember);

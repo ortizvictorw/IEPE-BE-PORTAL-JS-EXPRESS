@@ -27,7 +27,6 @@ class MongoServicesRepository {
         }
     }
 
-
     async findLean() {
         const service = await ServicesModel.find().select('-avatar -_id -__v').lean();
         return service;
@@ -134,11 +133,7 @@ class MongoServicesRepository {
         }
     }
 
-
     async update(service, _id) {
-        console.log(_id)
-        console.log(service)
-
         return await ServicesModel.findOneAndUpdate({ _id }, service, { new: true });
     }
 
