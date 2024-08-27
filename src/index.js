@@ -381,6 +381,59 @@ const exportDocuments = async (req, res) => {
   }
 }
 
+const exportUncheckedMembers = async (req, res) => {
+  try {
+    const datos = await selectedRepository(req.path);
+
+    if (!Array.isArray(datos)) {
+      return res.status(500).json({ message: 'Error: Los datos no son un array.' });
+    }
+
+    const hoja = XLSX.utils.json_to_sheet(datos);
+
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, 'Datos');
+
+    // Genera el archivo Excel en formato binario
+    const archivoExcel = XLSX.write(libro, { bookType: 'xlsx', type: 'buffer' });
+
+    // Configura la respuesta HTTP
+    res.setHeader('Content-Disposition', 'attachment; filename=exportacion.xlsx');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.send(archivoExcel);
+    console.log('Exportación completada con éxito.');
+  } catch (error) {
+    console.error('Error al exportar:', error);
+    res.status(500).json({ message: 'Error al exportar' });
+  }
+}
+
+const exportCheckedMembersWithComments = async (req, res) => {
+  try {
+    const datos = await selectedRepository(req.path);
+
+    if (!Array.isArray(datos)) {
+      return res.status(500).json({ message: 'Error: Los datos no son un array.' });
+    }
+
+    const hoja = XLSX.utils.json_to_sheet(datos);
+
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, 'Datos');
+
+    // Genera el archivo Excel en formato binario
+    const archivoExcel = XLSX.write(libro, { bookType: 'xlsx', type: 'buffer' });
+
+    // Configura la respuesta HTTP
+    res.setHeader('Content-Disposition', 'attachment; filename=exportacion.xlsx');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.send(archivoExcel);
+    console.log('Exportación completada con éxito.');
+  } catch (error) {
+    console.error('Error al exportar:', error);
+    res.status(500).json({ message: 'Error al exportar' });
+  }
+}
 /* UTILS */
 const selectedRepository = async (repositoryName) => {
   let datos;
@@ -392,6 +445,16 @@ const selectedRepository = async (repositoryName) => {
 
     case '/members/export':
       datos = await memberRepository.findLean();
+      break;
+
+
+    case '/members/exportUncheckedMembers':
+      datos = await memberRepository.findLeanUncheckedMembers();
+      break;
+
+
+    case '/members/exportCheckedMembersWithComments':
+      datos = await memberRepository.findLeanCheckedMembersWithComments();
       break;
 
     default:
@@ -437,6 +500,9 @@ app.get('/members/birthday', getMembersBirthday);
 app.get('/members/findMembersBirthdayThisWeek', findMembersBirthdayThisWeek);
 app.get('/members/summary', getMembersSummary);
 app.get('/members/export', exportDocuments)
+app.get('/members/exportUncheckedMembers', exportUncheckedMembers)
+app.get('/members/exportCheckedMembersWithComments', exportCheckedMembersWithComments)
+
 app.get('/members/generate-credential/:dni', generateCredential);
 app.get('/members/:id', getMemberById);
 app.put('/members/:id', updateMember);

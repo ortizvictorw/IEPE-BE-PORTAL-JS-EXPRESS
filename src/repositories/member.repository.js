@@ -35,6 +35,25 @@ class MongoMemberRepository {
         return members;
     }
 
+
+    async findLeanUncheckedMembers() {
+        const members = await MemberModel.find({ dataConfirmed: false })
+            .select('-avatar -_id -__v')
+            .lean();
+        return members;
+    }
+    
+    async findLeanCheckedMembersWithComments() {
+        const members = await MemberModel.find({
+            dataConfirmed: true,
+            observations: { $regex: /.+/ } // Filtro para obtener miembros con observaciones no vacías
+        })
+        .select('-avatar -_id -__v')
+        .lean();
+        return members;
+    }
+    
+    
     async find(page) {
         const pageSize = 5; // Tamaño de página, puedes ajustarlo según tus necesidades
         const skip = page * pageSize; // Cálculo de skip considerando la indexación base 0
@@ -72,20 +91,22 @@ class MongoMemberRepository {
     }
     
     async findMembersBirthdayThisWeek() {
-        // Establecer la zona horaria de Argentina
+        // Set the timezone to Argentina
         const timezone = 'America/Argentina/Buenos_Aires';
         const today = moment().tz(timezone);
     
-        // Definir el rango de fechas: desde hoy hasta el próximo lunes
-        const startOfWeek = today.clone().startOf('day'); // Desde hoy
-        const endOfWeek = startOfWeek.clone().add(6 - today.day() + 1, 'days'); // Próximo lunes
+        // Define the date range: from the current Tuesday (or today if it's Tuesday) to the next Monday
+        const startOfWeek = today.clone().day(today.day() >= 2 ? 1 : 2 - 7).startOf('day'); // Today if it's Tuesday, or the previous Tuesday
+    
+        const endOfWeek = startOfWeek.clone().add(6 - (today.day() === 1 ? 7 : 0), 'days').endOf('day'); // Next Monday
     
         const members = await MemberModel.aggregate([
             {
                 $addFields: {
                     dayOfYearBirth: { $dayOfYear: "$dateOfBirth" },
-                    yearBirth: { $year: "$dateOfBirth" },
-                    currentYear: today.year()
+                    birthYear: { $year: "$dateOfBirth" },
+                    currentYear: today.year(),
+                    age: { $subtract: [today.year(), { $year: "$dateOfBirth" }] } // Calculate age
                 }
             },
             {
@@ -93,9 +114,11 @@ class MongoMemberRepository {
                     $and: [
                         { dayOfYearBirth: { $gte: startOfWeek.dayOfYear() } },
                         { dayOfYearBirth: { $lte: endOfWeek.dayOfYear() } },
-                        { yearBirth: { $eq: today.year() } }
                     ]
                 }
+            },
+            {
+                $sort: { age: 1 } // Sort by age in ascending order (youngest first)
             }
         ]);
     
@@ -103,6 +126,7 @@ class MongoMemberRepository {
             members
         };
     }
+    
     
 
     // Ejemplo en MongoMemberRepository.js
