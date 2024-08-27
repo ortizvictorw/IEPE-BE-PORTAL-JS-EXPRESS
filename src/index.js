@@ -147,6 +147,18 @@ const getMembersBirthday = async (req, res) => {
   }
 };
 
+const findMembersBirthdayThisWeek = async (req, res) => {
+  try {
+    let members;
+     members = await memberRepository.findMembersBirthdayThisWeek();
+    res.status(200).json(members);
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 const getMembersSummary = async (req, res) => {
   try {
     const members = await memberRepository.findSummary(req.query);
@@ -392,8 +404,8 @@ const selectedRepository = async (repositoryName) => {
 
 const registerUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const savedUser = await userRepository.create({email, password });
+    const { email, password, role } = req.body;
+    const savedUser = await userRepository.create({email, password, role });
     res.status(201).json({ message: 'User registered successfully', user: savedUser });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -422,6 +434,7 @@ app.post('/login', loginUser);
 app.post('/members', createMember);
 app.get('/members', getMembers);
 app.get('/members/birthday', getMembersBirthday);
+app.get('/members/findMembersBirthdayThisWeek', findMembersBirthdayThisWeek);
 app.get('/members/summary', getMembersSummary);
 app.get('/members/export', exportDocuments)
 app.get('/members/generate-credential/:dni', generateCredential);

@@ -70,6 +70,40 @@ class MongoMemberRepository {
             members
         };
     }
+    
+    async findMembersBirthdayThisWeek() {
+        // Establecer la zona horaria de Argentina
+        const timezone = 'America/Argentina/Buenos_Aires';
+        const today = moment().tz(timezone);
+    
+        // Definir el rango de fechas: desde hoy hasta el próximo lunes
+        const startOfWeek = today.clone().startOf('day'); // Desde hoy
+        const endOfWeek = startOfWeek.clone().add(6 - today.day() + 1, 'days'); // Próximo lunes
+    
+        const members = await MemberModel.aggregate([
+            {
+                $addFields: {
+                    dayOfYearBirth: { $dayOfYear: "$dateOfBirth" },
+                    yearBirth: { $year: "$dateOfBirth" },
+                    currentYear: today.year()
+                }
+            },
+            {
+                $match: {
+                    $and: [
+                        { dayOfYearBirth: { $gte: startOfWeek.dayOfYear() } },
+                        { dayOfYearBirth: { $lte: endOfWeek.dayOfYear() } },
+                        { yearBirth: { $eq: today.year() } }
+                    ]
+                }
+            }
+        ]);
+    
+        return {
+            members
+        };
+    }
+    
 
     // Ejemplo en MongoMemberRepository.js
     async findByFilter(filter, page) {
