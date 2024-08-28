@@ -7,9 +7,12 @@ class MongoServicesRepository {
         try {
             // Obtener los servicios y realizar el 'populate'
             const services = await ServicesModel.find()
-                .select('-avatar -__v')
-                .populate('member', 'firstName lastName -_id')
-                .lean(); // Utiliza `lean()` para obtener un objeto JavaScript plano
+            .select('-avatar -__v')  // Excluye los campos 'avatar' y '__v'
+            .populate({
+                path: 'member',
+                select: 'firstName lastName -_id'  // Incluye solo 'firstName' y 'lastName', excluyendo '_id'
+            })
+            .lean();
 
             // Transformar los datos a la estructura deseada
             const transformedServices = services.map(service => ({

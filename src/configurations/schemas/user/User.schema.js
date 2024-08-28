@@ -12,7 +12,7 @@ const UserSchema = new Schema({
     type: String,
     required: true
   },
-  role: { type: String, enum: ['miembro','secretaria','comision', 'admin', 'pastor'], default: 'miembro' }
+  role: { type: String, enum: ['miembro','secretaria','comision', 'admin', 'pastor','utileria'], default: 'miembro' }
 
 });
 

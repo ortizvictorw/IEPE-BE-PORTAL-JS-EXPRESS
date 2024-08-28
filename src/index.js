@@ -15,6 +15,8 @@ const db = require('./configurations/db.config');
 const MongoMemberRepository = require('./repositories/member.repository');
 const MongoServicesRepository = require('./repositories/services.repository');
 const UserRepository = require('./repositories/user.repository');
+const UtilityRepository = require('./repositories/utility.repository');
+
 
 const MemberModel = require('./configurations/schemas/member/Member.schema');
 const ServiceModel = require('./configurations/schemas/services/Services.schema');
@@ -22,7 +24,7 @@ const ServiceModel = require('./configurations/schemas/services/Services.schema'
 const memberRepository = new MongoMemberRepository();
 const servicesRepository = new MongoServicesRepository();
 const userRepository = new UserRepository();
-
+const utilityRepository = new UtilityRepository()
 
 const app = express();
 
@@ -487,6 +489,55 @@ const loginUser = async (req, res) => {
   }
 };
 
+// Ruta para pedir un ítem
+const getUtilities = async (req, res) => {
+  try {
+    const items = await utilityRepository.get();
+    res.status(201).send(items);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+}
+
+// Ruta para agregar un ítem
+const addUtility = async (req, res) => {
+  try {
+    const newItem = await utilityRepository.add(req.body);
+    res.status(201).send(newItem);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+}
+
+// Ruta para actualizar la cantidad (sumar o restar)
+const updateUtility = async (req, res) => {
+  const { id } = req.params;
+  const { body } = req;
+
+  try {
+    const updatedItem = await utilityRepository.udpate(id, body.quantity);
+    res.status(200).send(updatedItem);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+}
+
+// Ruta para eliminar un ítem
+const removeUtility = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const deletedItem = await utilityRepository.delete(id);
+    res.status(200).send(deletedItem);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+}
+
+//rutas de Inventario
+app.get('/utility', getUtilities);
+app.post('/utility/add', addUtility);
+app.put('/utility/:id', updateUtility);
+app.delete('/utility/:id', removeUtility);
 
 // Rutas de usuario
 app.post('/register', registerUser);
