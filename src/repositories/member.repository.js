@@ -37,9 +37,9 @@ class MongoMemberRepository {
 
 
     async findLeanUncheckedMembers() {
-        const members = await MemberModel.find({ dataConfirmed: false })
-            .select('-avatar -_id -__v')
-            .lean();
+        const members = await MemberModel.find({ $or: [{ dataConfirmed: false }, { dataConfirmed: { $exists: false } }] })
+        .select('-avatar -_id -__v')
+        .lean();
         return members;
     }
     

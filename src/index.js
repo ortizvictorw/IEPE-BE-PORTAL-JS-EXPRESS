@@ -458,6 +458,9 @@ const selectedRepository = async (repositoryName) => {
     case '/members/exportCheckedMembersWithComments':
       datos = await memberRepository.findLeanCheckedMembersWithComments();
       break;
+    
+    case '/utility/export' :
+      datos = await utilityRepository.get();
 
     default:
       datos = [];
@@ -538,6 +541,8 @@ app.get('/utility', getUtilities);
 app.post('/utility/add', addUtility);
 app.put('/utility/:id', updateUtility);
 app.delete('/utility/:id', removeUtility);
+app.get('/utility/export', exportDocuments)
+
 
 // Rutas de usuario
 app.post('/register', registerUser);
