@@ -13,8 +13,13 @@ function verifyToken(req, res, next) {
 
   jwt.verify(tokenWithoutBearer, process.env.JWT_SECRET, async function(err, decoded) {
     if (err) {
-      return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' });
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).send({ auth: false, message: 'Token has expired.' });
+      } else {
+        return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' });
+      }
     }
+
     const user = await UserModel.findOne({ _id: decoded.userId });
     if (!user) {
       return res.status(500).send({ auth: false, message: 'Failed to authenticate user.' });
