@@ -9,6 +9,7 @@ const Jimp = require('jimp');
 const puppeteer = require('puppeteer');
 const XLSX = require('xlsx');
 const compression = require('compression');
+const verifyToken = require('./middlewares/auth.middleware');
 
 const db = require('./configurations/db.config');
 
@@ -38,7 +39,7 @@ const app = express();
 })();
 
 app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true })); 
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 app.use(cors({
   origin: '*',
@@ -107,7 +108,7 @@ const createMemberServicesMasive = async (req, res) => {
         ...service,
         avatar,
         date,
-        member: member._id 
+        member: member._id
       });
 
       return await newService.save();
@@ -141,7 +142,7 @@ const getMembers = async (req, res) => {
 const getMembersBirthday = async (req, res) => {
   try {
     let members;
-     members = await memberRepository.findMembersBirthday();
+    members = await memberRepository.findMembersBirthday();
     res.status(200).json(members);
   } catch (error) {
     console.error(error)
@@ -152,7 +153,7 @@ const getMembersBirthday = async (req, res) => {
 const findMembersBirthdayThisWeek = async (req, res) => {
   try {
     let members;
-     members = await memberRepository.findMembersBirthdayThisWeek();
+    members = await memberRepository.findMembersBirthdayThisWeek();
     res.status(200).json(members);
   } catch (error) {
     console.error(error)
@@ -243,25 +244,25 @@ const generateCredential = async (req, res) => {
       .replace('{member.firstName}', member.firstName)
       .replace('{member.position}', member.position !== "MIEMBRO" ? `<li>SERVICIO: ${member.position} </li>` : "");
 
-      browser = await puppeteer.launch({ headless: true });
-      const page = await browser.newPage();
-      await page.setContent(html);
-      const image = await page.screenshot({ type: 'png', quality: 60 });
-  
-      await page.close();
-      res.status(200).json({ image: image.toString('base64') });
-    } catch (error) {
-      console.error('Error generando imágenes:', error);
-      res.status(500).send('Error generando imágenes');
-    } finally {
-      if (browser) {
-        await browser.close();
-      }
+    browser = await puppeteer.launch({ headless: true });
+    const page = await browser.newPage();
+    await page.setContent(html);
+    const image = await page.screenshot({ type: 'png', quality: 60 });
+
+    await page.close();
+    res.status(200).json({ image: image.toString('base64') });
+  } catch (error) {
+    console.error('Error generando imágenes:', error);
+    res.status(500).send('Error generando imágenes');
+  } finally {
+    if (browser) {
+      await browser.close();
     }
+  }
 };
 
 /* SERVICES */
-const createServices= async (req, res) => {
+const createServices = async (req, res) => {
   try {
     const service = req.body;
     const avatar = await memberRepository.getAvatarById(service.dni);
@@ -317,7 +318,7 @@ const updateService = async (req, res) => {
     const service = req.body;
     const { id } = req.params;
 
-    const updatedMember = await servicesRepository.update(service,id);
+    const updatedMember = await servicesRepository.update(service, id);
     res.status(200).json(updatedMember);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -458,8 +459,8 @@ const selectedRepository = async (repositoryName) => {
     case '/members/exportCheckedMembersWithComments':
       datos = await memberRepository.findLeanCheckedMembersWithComments();
       break;
-    
-    case '/utility/export' :
+
+    case '/utility/export':
       datos = await utilityRepository.get();
 
     default:
@@ -473,7 +474,7 @@ const selectedRepository = async (repositoryName) => {
 const registerUser = async (req, res) => {
   try {
     const { email, password, role } = req.body;
-    const savedUser = await userRepository.create({email, password, role });
+    const savedUser = await userRepository.create({ email, password, role });
     res.status(201).json({ message: 'User registered successfully', user: savedUser });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -482,8 +483,8 @@ const registerUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
   try {
-    const { email,password } = req.body;
-    const {token , user} = await userRepository.login({email, password});
+    const { email, password } = req.body;
+    const { token, user } = await userRepository.login({ email, password });
 
     res.status(200).json({ message: 'Login successful', token, user });
   } catch (error) {
@@ -537,11 +538,11 @@ const removeUtility = async (req, res) => {
 }
 
 //rutas de Inventario
-app.get('/utility', getUtilities);
-app.post('/utility/add', addUtility);
-app.put('/utility/:id', updateUtility);
-app.delete('/utility/:id', removeUtility);
-app.get('/utility/export', exportDocuments)
+app.get('/utility', verifyToken, getUtilities);
+app.post('/utility/add', verifyToken, addUtility);
+app.put('/utility/:id', verifyToken, updateUtility);
+app.delete('/utility/:id', verifyToken, removeUtility);
+app.get('/utility/export', verifyToken, exportDocuments)
 
 
 // Rutas de usuario
@@ -550,30 +551,30 @@ app.post('/login', loginUser);
 
 
 // Rutas members
-app.post('/members', createMember);
-app.get('/members', getMembers);
-app.get('/members/birthday', getMembersBirthday);
-app.get('/members/findMembersBirthdayThisWeek', findMembersBirthdayThisWeek);
-app.get('/members/summary', getMembersSummary);
-app.get('/members/export', exportDocuments)
-app.get('/members/exportUncheckedMembers', exportUncheckedMembers)
-app.get('/members/exportCheckedMembersWithComments', exportCheckedMembersWithComments)
+app.post('/members', verifyToken, createMember);
+app.get('/members', verifyToken, getMembers);
+app.get('/members/birthday', verifyToken, getMembersBirthday);
+app.get('/members/findMembersBirthdayThisWeek', verifyToken, findMembersBirthdayThisWeek);
+app.get('/members/summary', verifyToken, getMembersSummary);
+app.get('/members/export', verifyToken, exportDocuments)
+app.get('/members/exportUncheckedMembers', verifyToken, exportUncheckedMembers)
+app.get('/members/exportCheckedMembersWithComments', verifyToken, exportCheckedMembersWithComments)
 
-app.get('/members/generate-credential/:dni', generateCredential);
-app.get('/members/:id', getMemberById);
-app.put('/members/:id', updateMember);
-app.delete('/members/:id', deleteMember);
+app.get('/members/generate-credential/:dni', verifyToken, generateCredential);
+app.get('/members/:id', verifyToken, getMemberById);
+app.put('/members/:id', verifyToken, updateMember);
+app.delete('/members/:id', verifyToken, deleteMember);
 
 
 // Rutas services
-app.post('/services', createServices);
-app.post('/services/masive', createMemberServicesMasive);
-app.get('/services', getServices);
-app.get('/services/export', exportDocuments)
-app.get('/services/:id', getServiceById);
-app.put('/services/aproved/:id', aprovedService)
-app.put('/services/:id', updateService);
-app.delete('/services/:id', deleteService);
+app.post('/services', verifyToken, createServices);
+app.post('/services/masive', verifyToken, createMemberServicesMasive);
+app.get('/services', verifyToken, getServices);
+app.get('/services/export', verifyToken, exportDocuments)
+app.get('/services/:id', verifyToken, getServiceById);
+app.put('/services/aproved/:id', verifyToken, aprovedService)
+app.put('/services/:id', verifyToken, updateService);
+app.delete('/services/:id', verifyToken, deleteService);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
