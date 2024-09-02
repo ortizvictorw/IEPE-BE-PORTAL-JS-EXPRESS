@@ -6,7 +6,7 @@ const InventoryItemSchema = new mongoose.Schema({
   position: { type: String, required: true }, 
   type: { type: String, required: true }, 
   updatedAt: { type: Date, default: Date.now },
-  user: { type: String, required: true },
+  user: { type: String, required: true }
 });
 
 const InventoryItemModel = mongoose.model('InventoryItem', InventoryItemSchema);

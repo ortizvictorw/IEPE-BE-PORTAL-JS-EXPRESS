@@ -17,6 +17,7 @@ const MongoMemberRepository = require('./repositories/member.repository');
 const MongoServicesRepository = require('./repositories/services.repository');
 const UserRepository = require('./repositories/user.repository');
 const UtilityRepository = require('./repositories/utility.repository');
+const ActivityRepository = require('./repositories/activity.repository');
 
 
 const MemberModel = require('./configurations/schemas/member/Member.schema');
@@ -26,6 +27,7 @@ const memberRepository = new MongoMemberRepository();
 const servicesRepository = new MongoServicesRepository();
 const userRepository = new UserRepository();
 const utilityRepository = new UtilityRepository()
+const activityRepository = new ActivityRepository()
 
 const app = express();
 
@@ -537,6 +539,55 @@ const removeUtility = async (req, res) => {
   }
 }
 
+// Ruta para pedir un ítem
+const getActivities = async (req, res) => {
+  try {
+    const activities = await activityRepository.find();
+    res.status(201).send(activities);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+}
+
+// Ruta para agregar un ítem
+const addActivity = async (req, res) => {
+  try {
+    const newItem = await activityRepository.save(req.body);
+    res.status(201).send(newItem);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+}
+
+// Ruta para actualizar un ítem
+const updateActivity = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const deletedItem = await activityRepository.delete(id);
+    res.status(200).send(deletedItem);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+}
+
+
+// Ruta para eliminar un ítem
+const removeActivity = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const deletedItem = await activityRepository.delete(id);
+    res.status(200).send(deletedItem);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+}
+
+//rutas de Actividades
+app.get('/activity', verifyToken, getActivities);
+app.post('/activity/add', verifyToken, addActivity);
+app.put('/activity/:id', verifyToken, updateActivity);
+app.delete('/activity/:id', verifyToken, removeActivity);
+
 //rutas de Inventario
 app.get('/utility', verifyToken, getUtilities);
 app.post('/utility/add', verifyToken, addUtility);
@@ -544,11 +595,9 @@ app.put('/utility/:id', verifyToken, updateUtility);
 app.delete('/utility/:id', verifyToken, removeUtility);
 app.get('/utility/export', verifyToken, exportDocuments)
 
-
 // Rutas de usuario
 app.post('/register', registerUser);
 app.post('/login', loginUser);
-
 
 // Rutas members
 app.post('/members', verifyToken, createMember);
