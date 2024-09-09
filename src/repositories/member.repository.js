@@ -137,7 +137,7 @@ class MongoMemberRepository {
 
         const query = {
             $or: [
-                { firstName: { $regex: filter, $options: 'i' } },
+                { lastName: { $regex: filter, $options: 'i' } },
                 { dni: { $regex: filter, $options: 'i' } }
             ]
         };
