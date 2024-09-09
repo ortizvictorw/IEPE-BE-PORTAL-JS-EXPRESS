@@ -135,10 +135,14 @@ class MongoMemberRepository {
         const pageNumber = parseInt(page) || 1;
         const skip = (pageNumber - 1) * perPage;
 
+        const safeFilter = filter ? filter.trim() : '';
+
+
         const query = {
             $or: [
-                { lastName: { $regex: filter, $options: 'i' } },
-                { dni: { $regex: filter, $options: 'i' } }
+                { firstName: { $regex: safeFilter, $options: 'i' } },
+                { lastName: { $regex: safeFilter, $options: 'i' } },
+                { dni: { $regex: safeFilter, $options: 'i' } }
             ]
         };
 
