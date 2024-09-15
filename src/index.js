@@ -386,6 +386,31 @@ const exportDocuments = async (req, res) => {
   }
 }
 
+const exportDocumentsJson = async (req, res) => {
+  try {
+    const datos = await selectedRepository(req.path);
+
+    if (!Array.isArray(datos)) {
+      return res.status(500).json({ message: 'Error: Los datos no son un array.' });
+    }
+
+    // Convierte los datos a formato JSON
+    const jsonDatos = JSON.stringify(datos, null, 2); // Formatea con espacios para mejor legibilidad
+
+    // Configura la respuesta HTTP para que sea descargada como un archivo JSON
+    res.setHeader('Content-Disposition', 'attachment; filename=exportacion.json');
+    res.setHeader('Content-Type', 'application/json');
+    
+    // Envía el archivo JSON para que el cliente lo descargue
+    res.send(jsonDatos);
+    console.log('Exportación en formato JSON completada con éxito.');
+  } catch (error) {
+    console.error('Error al exportar:', error);
+    res.status(500).json({ message: 'Error al exportar' });
+  }
+};
+
+
 const exportUncheckedMembers = async (req, res) => {
   try {
     const datos = await selectedRepository(req.path);
@@ -452,6 +477,13 @@ const selectedRepository = async (repositoryName) => {
       datos = await memberRepository.findLean();
       break;
 
+    case '/members/export-json':
+      datos = await memberRepository.findLeanFull();
+      break;
+
+      case '/services/export-json':
+        datos = await servicesRepository.findLeanFull();
+        break;
 
     case '/members/exportUncheckedMembers':
       datos = await memberRepository.findLeanUncheckedMembers();
@@ -464,6 +496,7 @@ const selectedRepository = async (repositoryName) => {
 
     case '/utility/export':
       datos = await utilityRepository.get();
+      break;
 
     default:
       datos = [];
@@ -606,6 +639,7 @@ app.get('/members/birthday', verifyToken, getMembersBirthday);
 app.get('/members/findMembersBirthdayThisWeek', verifyToken, findMembersBirthdayThisWeek);
 app.get('/members/summary', verifyToken, getMembersSummary);
 app.get('/members/export', verifyToken, exportDocuments)
+app.get('/members/export-json', verifyToken, exportDocumentsJson)
 app.get('/members/exportUncheckedMembers', verifyToken, exportUncheckedMembers)
 app.get('/members/exportCheckedMembersWithComments', verifyToken, exportCheckedMembersWithComments)
 
@@ -620,6 +654,8 @@ app.post('/services', verifyToken, createServices);
 app.post('/services/masive', verifyToken, createMemberServicesMasive);
 app.get('/services', verifyToken, getServices);
 app.get('/services/export', verifyToken, exportDocuments)
+app.get('/services/export-json', verifyToken, exportDocumentsJson)
+
 app.get('/services/:id', verifyToken, getServiceById);
 app.put('/services/aproved/:id', verifyToken, aprovedService)
 app.put('/services/:id', verifyToken, updateService);

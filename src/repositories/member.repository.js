@@ -35,6 +35,10 @@ class MongoMemberRepository {
         return members;
     }
 
+    async findLeanFull() {
+        const members = await MemberModel.find().lean();
+        return members;
+    }
 
     async findLeanUncheckedMembers() {
         const members = await MemberModel.find({ $or: [{ dataConfirmed: false }, { dataConfirmed: { $exists: false } }] })

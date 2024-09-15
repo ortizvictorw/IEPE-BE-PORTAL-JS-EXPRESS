@@ -7,12 +7,12 @@ class MongoServicesRepository {
         try {
             // Obtener los servicios y realizar el 'populate'
             const services = await ServicesModel.find()
-            .select('-avatar -__v')  // Excluye los campos 'avatar' y '__v'
-            .populate({
-                path: 'member',
-                select: 'firstName lastName -_id'  // Incluye solo 'firstName' y 'lastName', excluyendo '_id'
-            })
-            .lean();
+                .select('-avatar -__v')  // Excluye los campos 'avatar' y '__v'
+                .populate({
+                    path: 'member',
+                    select: 'firstName lastName -_id'  // Incluye solo 'firstName' y 'lastName', excluyendo '_id'
+                })
+                .lean();
 
             // Transformar los datos a la estructura deseada
             const transformedServices = services.map(service => ({
@@ -34,6 +34,13 @@ class MongoServicesRepository {
         const service = await ServicesModel.find().select('-avatar -_id -__v').lean();
         return service;
     }
+
+
+    async findLeanFull() {
+        const service = await ServicesModel.find().lean();
+        return service;
+    }
+
 
     async find(page) {
         const pageSize = 5;

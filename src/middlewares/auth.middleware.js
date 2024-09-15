@@ -11,13 +11,16 @@ function verifyToken(req, res, next) {
   // Elimina el prefijo "Bearer " del token si está presente
   const tokenWithoutBearer = token.startsWith('Bearer ') ? token.slice(7, token.length) : token;
 
-  jwt.verify(tokenWithoutBearer, process.env.JWT_SECRET, async function(err, decoded) {
+  jwt.verify(tokenWithoutBearer, process.env.JWT_SECRET, async function (err, decoded) {
+    /*     if (err) {
+          if (err.name === 'TokenExpiredError') {
+            return res.status(401).send({ auth: false, message: 'Token has expired.' });
+          } else {
+            return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' });
+          }
+        } */
     if (err) {
-      if (err.name === 'TokenExpiredError') {
-        return res.status(401).send({ auth: false, message: 'Token has expired.' });
-      } else {
-        return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' });
-      }
+      return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' });
     }
 
     const user = await UserModel.findOne({ _id: decoded.userId });
