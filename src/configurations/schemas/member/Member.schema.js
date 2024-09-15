@@ -3,9 +3,10 @@ const { Schema } = mongoose;
 
 const memberSchema = new Schema({
   dni: { index: true, type: String, required: true },
-  firstName: {index:true, type: String, required: true },
-  lastName: {index:true, type: String, required: true },
+  firstName: { index: true, type: String, required: true },
+  lastName: { index: true, type: String, required: true },
   avatar: { type: String, required: false },
+  genre:  { type: String, required: false , default: null},
   dateOfBirth: { type: Date, required: true },
   address: { type: String, required: true },
   position: { type: String, required: true },
@@ -23,3 +24,4 @@ const memberSchema = new Schema({
 const MemberModel = mongoose.model('Member', memberSchema);
 
 module.exports = MemberModel;
+``
