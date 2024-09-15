@@ -31,7 +31,10 @@ class MongoMemberRepository {
     }
 
     async findLean() {
-        const members = await MemberModel.find().select('-avatar -_id -__v').lean();
+        const members = await MemberModel.find()
+            .select('-avatar -_id -__v')
+            .sort({ lastName: 1 })  // Ordenar por apellido en orden ascendente (1 para ascendente, -1 para descendente)
+            .lean();
         return members;
     }
 
