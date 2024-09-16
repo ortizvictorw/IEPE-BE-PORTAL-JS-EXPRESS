@@ -24,4 +24,4 @@ const memberSchema = new Schema({
 const MemberModel = mongoose.model('Member', memberSchema);
 
 module.exports = MemberModel;
-``
+
