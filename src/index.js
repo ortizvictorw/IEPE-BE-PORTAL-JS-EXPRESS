@@ -12,7 +12,6 @@ const compression = require('compression');
 const verifyToken = require('./middlewares/auth.middleware');
 
 const db = require('./configurations/db.config');
-
 const MongoMemberRepository = require('./repositories/member.repository');
 const MongoServicesRepository = require('./repositories/services.repository');
 const UserRepository = require('./repositories/user.repository');
@@ -613,6 +612,31 @@ app.get('/members/generate-credential/:dni', verifyToken, generateCredential);
 app.get('/members/:id', verifyToken, getMemberById);
 app.put('/members/:id', verifyToken, updateMember);
 app.delete('/members/:id', verifyToken, deleteMember);
+
+
+// Ruta para obtener todos los miembros junto con su avatar
+app.get('/api/members', async (req, res) => {
+  try {
+    const members = await Member.find().select(
+      " avatar firstName lastName age telephone maritalStatus dateOfBirth address locality position dateOfJoing dateOfBaptism status"
+    ); // Traer los campos 
+    res.status(200).json(members);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener los miembros', error });
+  }
+});
+
+
+// Ruta para obtener todos los miembros incluyendo el avatar
+app.get('/members-with-avatars', verifyToken, async (req, res) => {
+  try {
+    const members = await memberRepository.getAllMembers(); // Usamos la función que cree en member.repository
+    res.status(200).json(members);
+  } catch (error) {
+    console.error('Error al obtener los miembros:', error);
+    res.status(500).json({ message: 'Error al obtener los miembros', error: error.message });
+  }
+});
 
 
 // Rutas services
