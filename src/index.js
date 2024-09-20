@@ -210,47 +210,59 @@ const deleteMember = async (req, res) => {
 };
 
 const generateCredential = async (req, res) => {
+  let browser;
   try {
     const { dni } = req.params;
     const member = await memberRepository.findById(dni);
 
-    let avatarDefault;
+    if (!member) {
+      return res.status(404).send('Member not found');
+    }
 
     const qrUrl = `${process.env.URL_BASE_FRONT}/members/status/${dni}`;
     const qr = await QRCode.toDataURL(qrUrl);
 
-    const imagePath = path.join(__dirname, 'public/static/logo.png');
-    const imageLogo = await Jimp.read(imagePath);
+    // Logo processing
+    const logoPath = path.join(__dirname, 'public/static/logo.png');
+    const imageLogo = await Jimp.read(logoPath);
     imageLogo.resize(100, 100);
     const logoBuffer = await imageLogo.quality(60).getBufferAsync(Jimp.MIME_PNG);
     const logoBase64 = logoBuffer.toString('base64');
     const logoDataURL = `data:image/png;base64,${logoBase64}`;
 
-    if (!member.avatar) {
-      const imagePathDefault = path.join(__dirname, 'public/static/default.jpg');
-      const imageDefault = await Jimp.read(imagePathDefault);
+    // Avatar processing, if no avatar, use default
+    let avatarBase64;
+    if (member.avatar) {
+      avatarBase64 = member.avatar;
+    } else {
+      const defaultAvatarPath = path.join(__dirname, 'public/static/default.jpg');
+      const imageDefault = await Jimp.read(defaultAvatarPath);
       imageDefault.resize(100, 100);
-      const logoBufferDefault = await imageDefault.quality(60).getBufferAsync(Jimp.MIME_PNG);
-      const logoBase64Default = logoBufferDefault.toString('base64');
-      avatarDefault = `data:image/png;base64,${logoBase64Default}`;
+      const avatarBuffer = await imageDefault.quality(60).getBufferAsync(Jimp.MIME_PNG);
+      avatarBase64 = `data:image/png;base64,${avatarBuffer.toString('base64')}`;
     }
 
+    // Read HTML template
     const templatePath = path.join(__dirname, 'resources/templates/template.html');
     const htmlTemplate = fs.readFileSync(templatePath, 'utf8');
 
     const html = htmlTemplate
       .replace('{logoDataURL}', logoDataURL)
-      .replace('{member.avatar}', member.avatar ? member.avatar : avatarDefault)
+      .replace('{member.avatar}', avatarBase64)
       .replace('{qr}', qr)
       .replace('{member.lastName}', member.lastName)
       .replace('{member.firstName}', member.firstName)
-      .replace('{member.position}', member.position !== "MIEMBRO" ? `<li>SERVICIO: ${member.position} </li>` : "");
+      .replace('{member.position}', member.position !== 'MIEMBRO' ? `<li>SERVICIO: ${member.position}</li>` : '');
 
-    browser = await puppeteer.launch({ headless: true });
+    // Puppeteer
+    browser = await puppeteer.launch({ headless: true, executablePath: '/usr/bin/google-chrome' });
     const page = await browser.newPage();
     await page.setContent(html);
-    const image = await page.screenshot({ type: 'png', quality: 60 });
 
+    // PNG screenshot, no 'quality' option needed
+    const image = await page.screenshot({ type: 'png' });
+
+    // Close the page and return the image
     await page.close();
     res.status(200).json({ image: image.toString('base64') });
   } catch (error) {
@@ -262,6 +274,7 @@ const generateCredential = async (req, res) => {
     }
   }
 };
+
 
 /* SERVICES */
 const createServices = async (req, res) => {
