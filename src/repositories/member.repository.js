@@ -101,10 +101,9 @@ class MongoMemberRepository {
         const timezone = 'America/Argentina/Buenos_Aires';
         const today = moment().tz(timezone);
     
-        // Define the date range: from the current Tuesday (or today if it's Tuesday) to the next Monday
-        const startOfWeek = today.clone().day(today.day() >= 2 ? 1 : 2 - 7).startOf('day'); // Today if it's Tuesday, or the previous Tuesday
-    
-        const endOfWeek = startOfWeek.clone().add(6 - (today.day() === 1 ? 7 : 0), 'days').endOf('day'); // Next Monday
+        // Define the date range: from the last Tuesday to today (inclusive)
+        const startOfWeek = today.clone().day(today.day() >= 2 ? 2 : -5).startOf('day'); // Last Tuesday
+        const endOfWeek = today.clone().endOf('day'); // Today (Monday, inclusive)
     
         const members = await MemberModel.aggregate([
             {
@@ -119,7 +118,7 @@ class MongoMemberRepository {
                 $match: {
                     $and: [
                         { dayOfYearBirth: { $gte: startOfWeek.dayOfYear() } },
-                        { dayOfYearBirth: { $lte: endOfWeek.dayOfYear() } },
+                        { dayOfYearBirth: { $lte: endOfWeek.dayOfYear() } }
                     ]
                 }
             },
