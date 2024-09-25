@@ -46,8 +46,7 @@ class UserRepository {
              // Generar token JWT incluyendo el rol del usuario en el payload
             const token = jwt.sign(
             { userId: user._id, role: user.role }, 
-            process.env.JWT_SECRET, 
-            { expiresIn: '1d' }
+            process.env.JWT_SECRET
            );
 
             // Eliminar el campo password antes de devolver el usuario
