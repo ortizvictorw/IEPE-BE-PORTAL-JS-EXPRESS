@@ -628,6 +628,16 @@ const removeActivity = async (req, res) => {
   }
 }
 
+const getMembersGenre = async (req, res) => {
+  try {
+    const urls = await memberRepository.findByFilterGenre();
+    res.status(200).json(urls);
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: error.message });
+  }
+};
+
 //rutas de Actividades
 app.get('/activity', verifyToken, getActivities);
 app.post('/activity/add', verifyToken, addActivity);
@@ -648,6 +658,7 @@ app.post('/login', loginUser);
 // Rutas members
 app.post('/members', verifyToken, createMember);
 app.get('/members', verifyToken, getMembers);
+app.get('/members/withOutGenre', getMembersGenre);
 app.get('/members/birthday', verifyToken, getMembersBirthday);
 app.get('/members/findMembersBirthdayThisWeek', verifyToken, findMembersBirthdayThisWeek);
 app.get('/members/summary', verifyToken, getMembersSummary);

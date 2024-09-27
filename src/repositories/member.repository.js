@@ -37,6 +37,25 @@ class MongoMemberRepository {
         return members;
     }
 
+    async findByFilterGenre(skip = 0) {
+        const query = {
+            genre: { $in: [null, ""] } 
+        };
+
+        const members = await MemberModel.find(query)
+            .skip(skip)
+            .exec();
+        
+        // Mapeo de las URLs con base en el DNI de los miembros
+        const urlsmember = members.map(member => {
+            return { url: `https://iepe-portal.vercel.app/members/edit/${member.dni}` };
+        });
+        
+        return {
+            urls: urlsmember 
+        };
+    }
+
     async findLeanFull() {
         const members = await MemberModel.find().lean();
         return members;
