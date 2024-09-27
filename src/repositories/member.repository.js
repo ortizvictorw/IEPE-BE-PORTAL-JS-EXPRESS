@@ -37,24 +37,32 @@ class MongoMemberRepository {
         return members;
     }
 
-    async findByFilterGenre(skip = 0) {
-        const query = {
-            genre: { $in: [null, ""] } 
-        };
-
-        const members = await MemberModel.find(query)
-            .skip(skip)
-            .exec();
-        
-        // Mapeo de las URLs con base en el DNI de los miembros
-        const urlsmember = members.map(member => {
-            return { url: `https://iepe-portal.vercel.app/members/edit/${member.dni}` };
-        });
-        
-        return {
-            urls: urlsmember 
-        };
+    async transformMembers() {
+        const members = await MemberModel.find()
+            .select('-avatar -_id -__v')
+            .lean();
+    
+        // Transformar los datos a la estructura deseada (traduciendo las claves a español)
+        const transformedMembers = members.map(member => ({
+            DNI: member.dni, // Documento Nacional de Identidad
+            Nombre: member.firstName, // Nombre
+            Apellido: member.lastName, // Apellido
+            'Fecha Nacimiento': member.dateOfBirth, // Fecha de nacimiento
+            Dirección: member.address, // Dirección
+            Cargo: member.position, // Cargo/Posición
+            'Fecha de Ingreso a la Iglesia': member.dateOfJoiningChurch, // Fecha de ingreso a la iglesia
+            'Fecha de Bautismo': member.dateOfBaptism, // Fecha de bautismo
+            Estado: member.status, // Estado
+            Teléfono: member.telephone, // Teléfono
+            'Estado Civil': member.maritalStatus, // Estado civil
+            Localidad: member.locality, // Localidad
+            Observaciones: member.observations, // Observaciones
+            Género: member.genre // Género
+        }));
+    
+        return transformedMembers; 
     }
+    
 
     async findLeanFull() {
         const members = await MemberModel.find().lean();
