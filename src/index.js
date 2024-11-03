@@ -209,6 +209,28 @@ const deleteMember = async (req, res) => {
   }
 };
 
+// Función para ajustar el cargo según el género y formato del cargo
+function getPositionWithGender(member) {
+  const position = member.position;
+  const gender = member.genre;
+
+  // Si el miembro es mujer y el cargo termina en '/A', cambia 'O/A' a 'A'
+  if (gender === 'MUJER' && position.endsWith('/A')) {
+    return position.slice(0, -2) + 'A';
+  }
+  
+  // Si el miembro es hombre y el cargo termina en '/A', elimina la parte '/A'
+  if (gender === 'HOMBRE' && position.endsWith('/A')) {
+    return position.slice(0, -2);
+  }
+console.log(gender)
+console.log(position)
+console.log(position)
+
+  // En otros casos, devuelve el cargo tal cual
+  return position;
+}
+
 const generateCredential = async (req, res) => {
   let browser;
   try {
@@ -219,7 +241,7 @@ const generateCredential = async (req, res) => {
       return res.status(404).send('Member not found');
     }
 
-    const qrUrl = `${process.env.URL_BASE_FRONT}/members/status/${dni}`;
+    const qrUrl = `${process.env.URL_BASE_FRONT_PROD}/members/status/${dni}`;
     const qr = await QRCode.toDataURL(qrUrl);
 
     // Logo processing
@@ -252,7 +274,7 @@ const generateCredential = async (req, res) => {
       .replace('{qr}', qr)
       .replace('{member.lastName}', member.lastName)
       .replace('{member.firstName}', member.firstName)
-      .replace('{member.position}', member.position !== 'MIEMBRO' ? `<li>SERVICIO: ${member.position}</li>` : '');
+      .replace('{member.position}', member.position !== 'MIEMBRO' ? `<li>SERVICIO: ${getPositionWithGender(member)}</li>` : '');
 
     // Puppeteer
     browser = await puppeteer.launch({ headless: true, executablePath: '/usr/bin/google-chrome' });

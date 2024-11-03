@@ -2,30 +2,12 @@
 <html lang="en">
 <head>
   <style>
-    .contraportada {
+    .credencial-container {
+      display: flex;
+    }
+
+    .credencial, .contraportada {
       color: #ffffff;
-      font-family: "Source Sans Pro";
-      background-color: #002e4c;
-      width: 8.56cm;
-      height: 5.398cm;
-      position: relative;
-      border-radius: 10px;
-      overflow: hidden;
-      z-index: 0;
-      text-align: center;
-      padding-top: 1.5cm;
-    }
-    .contraportada h2 {
-      font-size: 2.4mm;
-      font-weight: 600;
-      margin-bottom: 5px;
-    }
-    .contraportada p {
-      font-size: 1.8mm;
-      margin-bottom: 3px;
-    }
-    .credencial {
-      color: #00b4e1;
       font-family: "Source Sans Pro";
       background-color: #002e4c;
       width: 8.56cm;
@@ -36,6 +18,7 @@
       border: 0.5px solid #ffffff;
       z-index: 0;
     }
+
     .heading .logo,
     .heading .subtitle,
     .foto,
@@ -43,20 +26,32 @@
     .datos {
       position: absolute;
     }
+    
+    /* Ajustes para los elementos internos de la contraportada */
     .datos-contratapa {
       position: absolute;
+      top: 1.5cm;
+      left: 0;
+      width: 100%;
+      color: #b0bbc8;
+      font-size: 0.2cm;
+      font-weight: 400;
+      padding: 0 0.3cm;
+      text-align: left;
     }
+    
     .heading .logo {
       letter-spacing: -0.4mm;
       top: -0.7cm;
       left: 0.6cm;
       font-size: 1cm;
     }
+    
     .datos,
-    .datos-contratapa,
     .heading .subtitle {
       list-style: none;
     }
+    
     .datos {
       color: #b0bbc8;
       bottom: 0.2cm;
@@ -65,14 +60,7 @@
       left: -0.78cm;
       letter-spacing: 0.1mm;
     }
-    .datos-contratapa {
-      color: #b0bbc8;
-      bottom: 0.2cm;
-      font-size: 0.2cm;
-      font-weight: 400;
-      left: -0.78cm;
-      letter-spacing: 0.1mm;
-    }
+    
     .heading .subtitle {
       font-size: 2.6mm;
       left: 2cm;
@@ -80,25 +68,48 @@
       font-weight: 600;
       color: #009cc3;
     }
+    
     img {
       top: 45%;
       z-index: -1;
       margin-left: 1rem;
     }
+    
     .logo img {
       opacity: 0.8;
     }
+    
     .foto img {
       max-width: 50%;
       max-height: 50%;
       margin-left: 1rem;
     }
-    .credencial-container {
+    
+    /* Estilo para la sección de firmas */
+    .firmas-container {
       display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 0.5cm;
+      position: absolute;
+      bottom: 0.5cm;
+      width: 80%;
+      left: 5%;
     }
+
+    .firma {
+      text-align: center;
+      font-size: 0.5em;
+      color: #b0bbc8;
+      width: 3cm;
+      border-top: 1px solid #b0bbc8;
+      padding-top: 0.2cm;
+    }
+    
   </style>
 </head>
 <body class="credencial-container">
+  <!-- Credencial frontal -->
   <div class="credencial">
     <div class="heading">
       <div>
@@ -130,7 +141,9 @@
       </div>
     </div>
   </div>
-  <div class="credencial">
+
+  <!-- Contraportada -->
+  <div class="contraportada">
     <div class="heading">
       <div>
         <h1 class="logo"></h1>
@@ -147,10 +160,17 @@
                 display: block;
                 color: #b0bbc8;
               ">Teniendo a Dios tenemos todo</span>
-          <ul class="datos-contratapa" style="width: 8.56cm">
-            <li>Dirección: Sánchez de Bustamante 786, Rosario, Santa Fe, Argentina</li>
-            <li>Pastor: Dante David Sarmiento</li>
-          </ul>
+          <div class="datos-contratapa">
+            <p>Dirección: Sánchez de Bustamante 786, Rosario, Santa Fe, Argentina</p>
+            <p>Pastor: Dante David Sarmiento</p>
+          </div>
+          
+          <!-- Sección de firmas en la parte inferior -->
+          <div class="firmas-container">
+            <div class="firma">Firma del Secretario</div>
+            <div class="firma">Firma del Pastor</div>
+          </div>
+          
         </div>
       </div>
     </div>
