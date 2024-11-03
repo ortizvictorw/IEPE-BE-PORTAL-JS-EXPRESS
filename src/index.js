@@ -223,9 +223,6 @@ function getPositionWithGender(member) {
   if (gender === 'HOMBRE' && position.endsWith('/A')) {
     return position.slice(0, -2);
   }
-console.log(gender)
-console.log(position)
-console.log(position)
 
   // En otros casos, devuelve el cargo tal cual
   return position;
@@ -260,7 +257,7 @@ const generateCredential = async (req, res) => {
       const defaultAvatarPath = path.join(__dirname, 'public/static/default.jpg');
       const imageDefault = await Jimp.read(defaultAvatarPath);
       imageDefault.resize(100, 100);
-      const avatarBuffer = await imageDefault.quality(60).getBufferAsync(Jimp.MIME_PNG);
+      const avatarBuffer = await imageDefault.quality(100).getBufferAsync(Jimp.MIME_PNG);
       avatarBase64 = `data:image/png;base64,${avatarBuffer.toString('base64')}`;
     }
 
