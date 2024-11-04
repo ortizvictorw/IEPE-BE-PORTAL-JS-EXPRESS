@@ -214,12 +214,12 @@ function getPositionWithGender(member) {
   const position = member.position;
   const gender = member.genre;
 
-  // Si el miembro es mujer y el cargo termina en '/A', cambia 'O/A' a 'A'
+  // Si el miembro es mujer y el cargo termina en '/A', cambia 'O/A' a 'A' MAESTRO/A => MAESTRA
   if (gender === 'MUJER' && position.endsWith('/A')) {
     return position.slice(0, -2) + 'A';
   }
   
-  // Si el miembro es hombre y el cargo termina en '/A', elimina la parte '/A'
+  // Si el miembro es hombre y el cargo termina en '/A', elimina la parte '/A' MAESTRO/A => MAESTRO
   if (gender === 'HOMBRE' && position.endsWith('/A')) {
     return position.slice(0, -2);
   }
@@ -267,11 +267,12 @@ const generateCredential = async (req, res) => {
 
     const html = htmlTemplate
       .replace('{logoDataURL}', logoDataURL)
+      .replace('{logoiniDataURL}', logoDataURL)
       .replace('{member.avatar}', avatarBase64)
       .replace('{qr}', qr)
       .replace('{member.lastName}', member.lastName)
       .replace('{member.firstName}', member.firstName)
-      .replace('{member.position}', member.position !== 'MIEMBRO' ? `<li>SERVICIO: ${getPositionWithGender(member)}</li>` : '');
+      .replace('{member.position}', member.position !== 'MIEMBRO' ? `<li>SERVICIO: ${getPositionWithGender(member)}</li>` : '')
 
     // Puppeteer
     browser = await puppeteer.launch({ headless: true, executablePath: '/usr/bin/google-chrome' });
@@ -692,6 +693,14 @@ app.get('/services/:id', verifyToken, getServiceById);
 app.put('/services/aproved/:id', verifyToken, aprovedService)
 app.put('/services/:id', verifyToken, updateService);
 app.delete('/services/:id', verifyToken, deleteService);
+
+// Configuración para servir archivos estáticos
+app.use('/static', express.static(path.join(__dirname, 'public', 'static')));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'resources', 'templates', 'template.html'));
+});
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));

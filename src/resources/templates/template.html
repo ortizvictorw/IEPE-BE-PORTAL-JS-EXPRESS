@@ -1,179 +1,215 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
     .credencial-container {
       display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+
     }
 
-    .credencial, .contraportada {
-      color: #ffffff;
-      font-family: "Source Sans Pro";
-      background-color: #002e4c;
+/*    background-image: url('https://st.depositphotos.com/1126760/3153/v/450/depositphotos_31537603-stock-illustration-beautiful-red-white-lines-abstract.jpg');*/
+    .credencial,
+    .contraportada {
+      background-image: url('/static/fondo.png');
+      /* URL completa de la imagen */
+      background-size: cover;
+      /* La imagen cubrirá todo el área del elemento */
+      background-repeat: no-repeat;
+      /* Evita que la imagen se repita */
+      background-position: center;
+      /* Centra la imagen */
       width: 8.56cm;
       height: 5.398cm;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       position: relative;
-      border-radius: 10px;
       overflow: hidden;
-      border: 0.5px solid #ffffff;
-      z-index: 0;
+      border: 1px solid #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      box-sizing: border-box;
     }
 
-    .heading .logo,
-    .heading .subtitle,
-    .foto,
-    img,
-    .datos {
-      position: absolute;
+    .heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
     }
-    
-    /* Ajustes para los elementos internos de la contraportada */
-    .datos-contratapa {
-      position: absolute;
-      top: 1.5cm;
-      left: 0;
-      width: 100%;
-      color: #b0bbc8;
-      font-size: 0.2cm;
-      font-weight: 400;
-      padding: 0 0.3cm;
-      text-align: left;
+
+    .logo {
+      display: flex;
+      align-items: center;
+      font-size: 1.2rem;
+      color: #002e4c;
+      font-weight: bold;
     }
-    
-    .heading .logo {
-      letter-spacing: -0.4mm;
-      top: -0.7cm;
-      left: 0.6cm;
-      font-size: 1cm;
-    }
-    
-    .datos,
-    .heading .subtitle {
-      list-style: none;
-    }
-    
-    .datos {
-      color: #b0bbc8;
-      bottom: 0.2cm;
-      font-size: 0.29cm;
-      font-weight: 600;
-      left: -0.78cm;
-      letter-spacing: 0.1mm;
-    }
-    
-    .heading .subtitle {
-      font-size: 2.6mm;
-      left: 2cm;
-      line-height: 3mm;
-      font-weight: 600;
-      color: #009cc3;
-    }
-    
-    img {
-      top: 45%;
-      z-index: -1;
-      margin-left: 1rem;
-    }
-    
+
     .logo img {
-      opacity: 0.8;
+      margin-right: 10px;
+      width: 35px;
+      height: 35px;
+      object-fit: contain;
     }
-    
-    .foto img {
-      max-width: 50%;
-      max-height: 50%;
-      margin-left: 1rem;
+
+    .subtitle {
+      font-size: 0.8rem;
+      color: #0077b6;
+      margin-top: 0.2rem;
+      line-height: 1.2;
     }
-    
-    /* Estilo para la sección de firmas */
+
+    .datos {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      color: #333333;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .avatar-container {
+      display: flex;
+      justify-content: start;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .avatar-container img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+    }
+
+    .qr-container {
+      position: absolute;
+      bottom: 2.6rem;
+      right: 1rem;
+    }
+
+    .qr-container img {
+      width: 90px;
+      height: 90px;
+    }
+
+    .datos-contratapa {
+      color: #555555;
+      font-size: 0.5rem;
+      line-height: .5;
+    }
+
+    .uppercase {
+      text-transform: uppercase;
+    }
+
+    .motto {
+      font-size: 0.75rem;
+      color: #8b3801;
+      text-align: center;
+      margin-top: 1rem;
+    }
+
     .firmas-container {
       display: flex;
-      justify-content: space-between;
+      justify-content: space-around;
       align-items: center;
-      padding: 0 0.5cm;
-      position: absolute;
-      bottom: 0.5cm;
-      width: 80%;
-      left: 5%;
+      margin-top: auto;
+      padding-top: 1rem;
+
     }
 
     .firma {
+      font-size: 0.7rem;
+      color: #333232;
       text-align: center;
-      font-size: 0.5em;
-      color: #b0bbc8;
-      width: 3cm;
-      border-top: 1px solid #b0bbc8;
-      padding-top: 0.2cm;
+      border-top: 1px solid #333232;
+      padding: 3px;
+      font-weight: 600;
     }
-    
+
+    .logo-contraportada {
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+      opacity: 0.9;
+      /* Opcional: Aumentar la visibilidad */
+      width: 95%;
+      /* Asegura que se ajuste al ancho del contenedor */
+      text-align: right;
+      /* Alinea a la derecha dentro del contenedor */
+    }
+
+    .logo-contraportada img {
+      width: 30px;
+      /* Ajusta el tamaño del logo si es necesario */
+      height: 30px;
+      margin-right: 0;
+      /* Asegura que no haya margen adicional */
+    }
   </style>
 </head>
-<body class="credencial-container">
-  <!-- Credencial frontal -->
-  <div class="credencial">
-    <div class="heading">
-      <div>
-        <h1 class="logo">
-          <div>
-            <div>
-              <img src="{logoDataURL}" alt="Logo" width="50" height="50" />
-            </div>
-            <div><strong>IEPE</strong></div>
-          </div>
-        </h1>
-        <ul class="subtitle">
-          <li>Iglesia</li>
-          <li>Evangelica</li>
-          <li>Pueblo Elegido</li>
-        </ul>
-        <div>
-          <div>
-            <img src="{member.avatar}" alt="Avatar" width="50" height="50" style="left: 10px" />
-          </div>
-          <div>
-            <img src="{qr}" alt="QR" width="75" height="75" style="top: 40px; right: 9px" />
-          </div>
-          <ul class="datos">
-            <li>APELLIDO Y NOMBRE: {member.lastName} {member.firstName}</li>
-            {member.position}
-          </ul>
+
+<body>
+  <div class="credencial-container">
+    <!-- Credencial frontal -->
+    <div class="credencial">
+      <div class="heading">
+        <div class="logo">
+          <img src="{logoDataURL}" alt="Logo">
+          <div>IEPE</div>
+        </div>
+        <div class="datos-contratapa" style="top: 10px; position: absolute; right: 10px;">
+          <p>CARNET DE MIEMBRO</p>
         </div>
       </div>
-    </div>
-  </div>
-
-  <!-- Contraportada -->
-  <div class="contraportada">
-    <div class="heading">
+      <div class="avatar-container">
+        <img src="{member.avatar}" alt="Avatar">
+      </div>
       <div>
-        <h1 class="logo"></h1>
-        <div>
-          <h1 class="logo">
-            <div>
-              <div></div>
-              <div><strong>IEPE</strong></div>
-            </div>
-          </h1>
-          <span style="
-                font-size: 0.8em;
-                margin: 3em;
-                display: block;
-                color: #b0bbc8;
-              ">Teniendo a Dios tenemos todo</span>
-          <div class="datos-contratapa">
-            <p>Dirección: Sánchez de Bustamante 786, Rosario, Santa Fe, Argentina</p>
-            <p>Pastor: Dante David Sarmiento</p>
-          </div>
-          
-          <!-- Sección de firmas en la parte inferior -->
-          <div class="firmas-container">
-            <div class="firma">Firma del Secretario</div>
-            <div class="firma">Firma del Pastor</div>
-          </div>
-          
-        </div>
+        <ul class="datos">
+          <li> <strong>{member.lastName} {member.firstName}</strong></li>
+        </ul>
+      </div>
+      <div class="qr-container">
+        <img src="{qr}" alt="QR">
+      </div>
+    </div>
+
+    <!-- Contraportada -->
+    <div class="contraportada">
+      <!-- Logo sutil y pequeño en la contraportada -->
+      <div class="logo-contraportada">
+        <img src="{logoiniDataURL}" alt="Logo">
+      </div>
+      <div class="datos-contratapa">
+        <h2 class="uppercase">Iglesia evangélica Pueblo Elegido</h2>
+        <p>Sánchez de Bustamante 786, Rosario, Santa Fe, Argentina</p>
+        <p>Fichero de Culto - 3361</p>
+
+      </div>
+      <div class="firmas-container">
+        <div class="firma">Firma del Pastor</div>
+        <div class="firma">Firma del Secretario</div>
       </div>
     </div>
   </div>
 </body>
+
 </html>
