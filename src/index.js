@@ -505,7 +505,9 @@ const selectedRepository = async (repositoryName) => {
     case '/services/export':
       datos = await servicesRepository.transformServices();
       break;
-
+    case ' export-without-services':
+      datos = await servicesRepository.getDniWithoutServicesInLastThreeMonths();
+      break;
     case '/members/export':
       datos = await memberRepository.transformMembers();
       break;
@@ -530,7 +532,6 @@ const selectedRepository = async (repositoryName) => {
     case '/utility/export':
       datos = await utilityRepository.get();
       break;
-
     default:
       datos = [];
       break;
@@ -687,6 +688,7 @@ app.post('/services', verifyToken, createServices);
 app.post('/services/masive', verifyToken, createMemberServicesMasive);
 app.get('/services', verifyToken, getServices);
 app.get('/services/export', verifyToken, exportDocuments)
+app.get('/services/export-without-services', verifyToken, exportDocuments)
 app.get('/services/export-json', verifyToken, exportDocumentsJson)
 
 app.get('/services/:id', verifyToken, getServiceById);

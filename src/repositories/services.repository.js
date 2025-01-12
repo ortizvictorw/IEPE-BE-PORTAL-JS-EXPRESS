@@ -30,6 +30,38 @@ class MongoServicesRepository {
         }
     }
 
+
+    async getDniWithoutServicesInLastThreeMonths() {
+        try {
+            // Calcular la fecha límite (tres meses atrás desde hoy)
+            const threeMonthsAgo = moment().subtract(3, 'months').toDate();
+
+            // Obtener los últimos servicios agrupados por DNI
+            const lastServicesByDni = await ServicesModel.aggregate([
+                {
+                    $group: {
+                        _id: "$dni", // Agrupar por DNI
+                        lastServiceDate: { $max: "$date" } // Obtener la última fecha de servicio
+                    }
+                },
+                {
+                    $match: {
+                        lastServiceDate: { $lte: threeMonthsAgo } // Filtrar por servicios más antiguos que tres meses
+                    }
+                }
+            ]);
+
+            // Extraer los DNIs de los resultados
+            const dniWithoutRecentServices = lastServicesByDni.map(service => service._id);
+
+            return dniWithoutRecentServices;
+        } catch (error) {
+            console.error('Error al obtener los DNI sin servicios recientes:', error);
+            throw new Error('Error al obtener los DNI sin servicios recientes');
+        }
+    }
+
+
     async findLean() {
         const service = await ServicesModel.find().select('-avatar -_id -__v').lean();
         return service;
