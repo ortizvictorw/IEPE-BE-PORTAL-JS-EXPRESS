@@ -505,7 +505,7 @@ const selectedRepository = async (repositoryName) => {
     case '/services/export':
       datos = await servicesRepository.transformServices();
       break;
-    case ' export-without-services':
+    case '/services/export-without-services':
       datos = await servicesRepository.getDniWithoutServicesInLastThreeMonths();
       break;
     case '/members/export':
