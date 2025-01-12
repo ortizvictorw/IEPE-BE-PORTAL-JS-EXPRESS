@@ -35,7 +35,7 @@ class MongoServicesRepository {
         try {
             // Calcular la fecha límite (tres meses atrás desde hoy)
             const threeMonthsAgo = moment().subtract(3, 'months').toDate();
-
+    
             // Obtener los últimos servicios agrupados por DNI
             const lastServicesByDni = await ServicesModel.aggregate([
                 {
@@ -48,13 +48,32 @@ class MongoServicesRepository {
                     $match: {
                         lastServiceDate: { $lte: threeMonthsAgo } // Filtrar por servicios más antiguos que tres meses
                     }
+                },
+                {
+                    $lookup: {
+                        from: "members", // Nombre de la colección de miembros (asegúrate de que sea correcto)
+                        localField: "_id", // Campo `dni` en los servicios
+                        foreignField: "dni", // Campo `dni` en los miembros
+                        as: "memberInfo" // Nombre del array donde se guardará la información del miembro
+                    }
+                },
+                {
+                    $unwind: {
+                        path: "$memberInfo", // Descomponer el array de miembros en objetos individuales
+                        preserveNullAndEmptyArrays: true // Incluir registros sin coincidencias
+                    }
                 }
             ]);
-
-            // Extraer los DNIs de los resultados
-            const dniWithoutRecentServices = lastServicesByDni.map(service => service._id);
-
-            return dniWithoutRecentServices;
+    
+            // Transformar los datos a la estructura deseada
+            const transformedData = lastServicesByDni.map(entry => ({
+                DNI: entry._id, // DNI del miembro
+                UltimoServicio: entry.lastServiceDate, // Fecha del último servicio
+                Nombre: entry.memberInfo ? entry.memberInfo.firstName : "No registrado", // Nombre del miembro
+                Apellido: entry.memberInfo ? entry.memberInfo.lastName : "No registrado" // Apellido del miembro
+            }));
+    
+            return transformedData;
         } catch (error) {
             console.error('Error al obtener los DNI sin servicios recientes:', error);
             throw new Error('Error al obtener los DNI sin servicios recientes');
