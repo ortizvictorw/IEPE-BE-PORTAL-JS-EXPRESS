@@ -63,13 +63,13 @@ class MongoServicesRepository {
             totalPages: Math.ceil(total / pageSize)
         };
     }
+
     async findByFilter(filter, page) {
         const perPage = 5; // Número de resultados por página
         const pageNumber = parseInt(page) || 1;
         const skip = (pageNumber - 1) * perPage;
 
         try {
-
             // Asegúrate de que el filtro sea una cadena válida
             const safeFilter = filter ? filter.trim() : '';
 
@@ -85,13 +85,11 @@ class MongoServicesRepository {
             // Extraer los `dni` encontrados
             const dniList = members.map(member => member.dni);
 
-            // Construir la consulta para ServicesModel basada en los `dni` encontrados
-            const query = dniList.length > 0 ?
-                {
-                    dni: { $in: dniList }
-                } :
-                {}; // Consulta vacía si no se encuentran miembros
-
+            // Construir la consulta para ServicesModel basada en los `dni` encontrados y el filtro de servicio
+            const query = {
+                ...(dniList.length > 0 && { dni: { $in: dniList } }),
+                ...(safeFilter && { service: { $regex: safeFilter, $options: 'i' } }) // Filtro por tipo de servicio
+            };
 
             // Ejecutar la consulta para obtener los servicios
             const services = await ServicesModel.find(query)
@@ -118,6 +116,7 @@ class MongoServicesRepository {
             throw new Error('Error al obtener los servicios'); // Propagar el error para manejo en niveles superiores
         }
     }
+
 
     async findById(_id) {
         const service = await ServicesModel.findById(_id)
