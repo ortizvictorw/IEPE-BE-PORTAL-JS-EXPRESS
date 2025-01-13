@@ -158,29 +158,61 @@ class MongoServicesRepository {
         const perPage = 5; // Número de resultados por página
         const pageNumber = parseInt(page) || 1;
         const skip = (pageNumber - 1) * perPage;
-
+    
         try {
             // Asegúrate de que el filtro sea una cadena válida
             const safeFilter = filter ? filter.trim() : '';
-
-            // Buscar documentos en MemberModel utilizando filtros por nombre, apellido o DNI
+    
+            // Determinar si el filtro contiene un rango de edad (e.g., "13-25")
+            let ageRange = null;
+            const ageMatch = safeFilter.match(/(\d+)-(\d+)/);
+            if (ageMatch) {
+                const [_, minAgeStr, maxAgeStr] = ageMatch;
+                const minAge = parseInt(minAgeStr, 10);
+                const maxAge = parseInt(maxAgeStr, 10);
+                if (!isNaN(minAge) && !isNaN(maxAge)) {
+                    ageRange = { minAge, maxAge };
+                }
+            }
+    
+            // Calcular las fechas de nacimiento para el rango de edad, si corresponde
+            let dateFilter = {};
+            if (ageRange) {
+                const currentDate = new Date();
+                const maxDateOfBirth = new Date(currentDate.setFullYear(currentDate.getFullYear() - ageRange.minAge)); // Fecha más joven
+                const minDateOfBirth = new Date(currentDate.setFullYear(currentDate.getFullYear() - ageRange.maxAge)); // Fecha más vieja
+                dateFilter = { dateOfBirth: { $gte: minDateOfBirth, $lte: maxDateOfBirth } };
+            }
+    
+            // Buscar documentos en MemberModel utilizando filtros por nombre, apellido, DNI y fecha de nacimiento
             const members = await MemberModel.find({
-                $or: [
-                    { firstName: { $regex: safeFilter, $options: 'i' } },
-                    { lastName: { $regex: safeFilter, $options: 'i' } },
-                    { dni: { $regex: safeFilter, $options: 'i' } }
+                $and: [
+                    {
+                        $or: [
+                            { firstName: { $regex: safeFilter, $options: 'i' } },
+                            { lastName: { $regex: safeFilter, $options: 'i' } },
+                            { dni: { $regex: safeFilter, $options: 'i' } }
+                        ]
+                    },
+                    ...(Object.keys(dateFilter).length > 0 ? [dateFilter] : []) // Filtro de edad, si aplica
                 ]
             }).select('dni'); // Solo necesitamos el campo `dni` para la consulta siguiente
-
+    
             // Extraer los `dni` encontrados
             const dniList = members.map(member => member.dni);
-
+    
             // Construir la consulta para ServicesModel basada en los `dni` encontrados y el filtro de servicio
             const query = {
                 ...(dniList.length > 0 && { dni: { $in: dniList } }), // Filtro por DNI
-                ...(safeFilter && { service: { $regex: safeFilter, $options: 'i' } }) // Filtro por tipo de servicio
+                ...(safeFilter && {
+                    $or: [
+                        { service: { $regex: safeFilter, $options: 'i' } }, // Filtro por servicio
+                        { 'member.firstName': { $regex: safeFilter, $options: 'i' } }, // Filtro por nombre
+                        { 'member.lastName': { $regex: safeFilter, $options: 'i' } } // Filtro por apellido
+                    ]
+                })
             };
-
+    
             // Ejecutar la consulta para obtener los servicios
             const services = await ServicesModel.find(query)
                 .select('-dni -__v') // Excluir campos innecesarios
@@ -189,11 +221,11 @@ class MongoServicesRepository {
                 .limit(perPage)
                 .populate('member', 'dni avatar firstName lastName dateOfBirth -_id') // Incluir solo los campos necesarios
                 .exec();
-
+    
             // Contar el total de documentos que coinciden con la consulta
             const totalServices = await ServicesModel.countDocuments(query);
             const totalPages = Math.ceil(totalServices / perPage); // Calcular el total de páginas
-
+    
             return {
                 services,
                 total: totalServices,
@@ -206,9 +238,8 @@ class MongoServicesRepository {
             throw new Error('Error al obtener los servicios'); // Propagar el error para manejo en niveles superiores
         }
     }
-
-
-
+    
+    
     async findById(_id) {
         const service = await ServicesModel.findById(_id)
         return service;
