@@ -31,10 +31,11 @@ class MongoServicesRepository {
     }
 
 
-    async getDniWithoutServicesInLastThreeMonths() {
+    async getInactiveMembersLastThreeMonths() {
         try {
             // Calcular la fecha límite (tres meses atrás desde hoy)
-            const threeMonthsAgo = moment().subtract(3, 'months').toDate();
+            const threeMonthsAgo = new Date();
+            threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
     
             // Obtener los últimos servicios agrupados por DNI
             const lastServicesByDni = await ServicesModel.aggregate([
@@ -51,10 +52,10 @@ class MongoServicesRepository {
                 },
                 {
                     $lookup: {
-                        from: "members", // Nombre de la colección de miembros (asegúrate de que sea correcto)
+                        from: "members", // Nombre de la colección de miembros
                         localField: "_id", // Campo `dni` en los servicios
                         foreignField: "dni", // Campo `dni` en los miembros
-                        as: "memberInfo" // Nombre del array donde se guardará la información del miembro
+                        as: "memberInfo" // Array donde se guarda la información del miembro
                     }
                 },
                 {
@@ -62,24 +63,29 @@ class MongoServicesRepository {
                         path: "$memberInfo", // Descomponer el array de miembros en objetos individuales
                         preserveNullAndEmptyArrays: true // Incluir registros sin coincidencias
                     }
+                },
+                {
+                    $project: {
+                        DNI: "$_id",
+                        lastServiceDate: 1,
+                        firstName: { $ifNull: ["$memberInfo.firstName", "No registrado"] },
+                        lastName: { $ifNull: ["$memberInfo.lastName", "No registrado"] }
+                    }
                 }
             ]);
     
-            // Transformar los datos a la estructura deseada
-            const transformedData = lastServicesByDni.map(entry => ({
-                DNI: entry._id, // DNI del miembro
-                UltimoServicio: entry.lastServiceDate, // Fecha del último servicio
-                Nombre: entry.memberInfo ? entry.memberInfo.firstName : "No registrado", // Nombre del miembro
-                Apellido: entry.memberInfo ? entry.memberInfo.lastName : "No registrado" // Apellido del miembro
+            return lastServicesByDni.map(entry => ({
+                DNI: entry.DNI,
+                UltimoServicio: entry.lastServiceDate,
+                Nombre: entry.firstName,
+                Apellido: entry.lastName
             }));
-    
-            return transformedData;
         } catch (error) {
-            console.error('Error al obtener los DNI sin servicios recientes:', error);
-            throw new Error('Error al obtener los DNI sin servicios recientes');
+            console.error("Error fetching inactive members:", error);
+            throw new Error("Error fetching inactive members");
         }
     }
-
+    
 
     async findLean() {
         const service = await ServicesModel.find().select('-avatar -_id -__v').lean();
