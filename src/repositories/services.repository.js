@@ -37,48 +37,57 @@ class MongoServicesRepository {
             const threeMonthsAgo = new Date();
             threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
     
-            // Obtener los últimos servicios agrupados por DNI
-            const lastServicesByDni = await ServicesModel.aggregate([
-                {
-                    $group: {
-                        _id: "$dni", // Agrupar por DNI
-                        lastServiceDate: { $max: "$date" } // Obtener la última fecha de servicio
-                    }
-                },
-                {
-                    $match: {
-                        lastServiceDate: { $lte: threeMonthsAgo } // Filtrar por servicios más antiguos que tres meses
-                    }
-                },
+            // Obtener los miembros inactivos y los que nunca tuvieron servicios
+            const result = await MemberModel.aggregate([
+                // Unir miembros con servicios
                 {
                     $lookup: {
-                        from: "members", // Nombre de la colección de miembros
-                        localField: "_id", // Campo `dni` en los servicios
-                        foreignField: "dni", // Campo `dni` en los miembros
-                        as: "memberInfo" // Array donde se guarda la información del miembro
+                        from: "services", // Nombre de la colección de servicios
+                        localField: "dni", // Campo `dni` en los miembros
+                        foreignField: "dni", // Campo `dni` en los servicios
+                        as: "services" // Array donde se guarda la información de servicios
                     }
                 },
+                // Agregar el último servicio por miembro
                 {
-                    $unwind: {
-                        path: "$memberInfo", // Descomponer el array de miembros en objetos individuales
-                        preserveNullAndEmptyArrays: true // Incluir registros sin coincidencias
+                    $addFields: {
+                        lastServiceDate: { $max: "$services.date" }
                     }
                 },
+                // Clasificar en base a servicios recientes o nunca tuvo servicio
                 {
                     $project: {
-                        DNI: "$_id",
+                        DNI: "$dni",
+                        firstName: 1,
+                        lastName: 1,
                         lastServiceDate: 1,
-                        firstName: { $ifNull: ["$memberInfo.firstName", "No registrado"] },
-                        lastName: { $ifNull: ["$memberInfo.lastName", "No registrado"] }
+                        hasNeverHadService: { $eq: [{ $size: "$services" }, 0] }
+                    }
+                },
+                // Filtrar miembros inactivos o que nunca tuvieron servicios
+                {
+                    $match: {
+                        $or: [
+                            { hasNeverHadService: true },
+                            { lastServiceDate: { $lte: threeMonthsAgo } }
+                        ]
+                    }
+                },
+                // Ordenar por último servicio (los que nunca tuvieron servicio quedan al final)
+                {
+                    $sort: {
+                        hasNeverHadService: 1, // Los que nunca tuvieron servicio al final
+                        lastServiceDate: 1 // Más antiguos primero
                     }
                 }
             ]);
     
-            return lastServicesByDni.map(entry => ({
+            // Transformar la estructura de datos a la salida deseada
+            return result.map(entry => ({
                 DNI: entry.DNI,
-                UltimoServicio: entry.lastServiceDate,
-                Nombre: entry.firstName,
-                Apellido: entry.lastName
+                UltimoServicio: entry.hasNeverHadService ? "Nunca tuvo servicio" : entry.lastServiceDate,
+                Nombre: entry.firstName || "No registrado",
+                Apellido: entry.lastName || "No registrado"
             }));
         } catch (error) {
             console.error("Error fetching inactive members:", error);
