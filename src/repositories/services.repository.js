@@ -51,7 +51,18 @@ class MongoServicesRepository {
                 // Agregar el último servicio por miembro
                 {
                     $addFields: {
-                        lastServiceDate: { $max: "$services.date" }
+                        lastService: {
+                            $arrayElemAt: [
+                                {
+                                    $filter: {
+                                        input: "$services",
+                                        as: "service",
+                                        cond: { $lte: ["$$service.date", threeMonthsAgo] }
+                                    }
+                                },
+                                0
+                            ]
+                        }
                     }
                 },
                 // Clasificar en base a servicios recientes o nunca tuvo servicio
@@ -60,7 +71,8 @@ class MongoServicesRepository {
                         DNI: "$dni",
                         firstName: 1,
                         lastName: 1,
-                        lastServiceDate: 1,
+                        lastServiceDate: "$lastService.date",
+                        lastServiceName: "$lastService.service",
                         hasNeverHadService: { $eq: [{ $size: "$services" }, 0] }
                     }
                 },
@@ -82,13 +94,20 @@ class MongoServicesRepository {
                 }
             ]);
     
-            // Transformar la estructura de datos a la salida deseada
-            return result.map(entry => ({
+            // Validar que exista realmente el servicio para los miembros con servicios
+            const validatedResult = result.map(entry => ({
                 DNI: entry.DNI,
-                UltimoServicio: entry.hasNeverHadService ? "Nunca tuvo servicio" : entry.lastServiceDate,
+                UltimoServicio: entry.hasNeverHadService
+                    ? "Nunca tuvo servicio"
+                    : entry.lastServiceDate || "No disponible",
+                Servicio: entry.hasNeverHadService
+                    ? "N/A"
+                    : entry.lastServiceName || "No disponible",
                 Nombre: entry.firstName || "No registrado",
                 Apellido: entry.lastName || "No registrado"
             }));
+    
+            return validatedResult;
         } catch (error) {
             console.error("Error fetching inactive members:", error);
             throw new Error("Error fetching inactive members");
