@@ -36,7 +36,7 @@ class MongoServicesRepository {
             // Calcular la fecha límite (tres meses atrás desde hoy)
             const threeMonthsAgo = new Date();
             threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-    
+
             // Obtener los miembros inactivos y los que nunca tuvieron servicios
             const result = await MemberModel.aggregate([
                 // Unir miembros con servicios
@@ -48,19 +48,24 @@ class MongoServicesRepository {
                         as: "services" // Array donde se guarda la información de servicios
                     }
                 },
-                // Agregar el último servicio por miembro
+                // Filtrar los servicios dentro del rango requerido y obtener el más reciente
                 {
                     $addFields: {
                         lastService: {
                             $arrayElemAt: [
                                 {
                                     $filter: {
-                                        input: "$services",
+                                        input: {
+                                            $sortArray: {
+                                                input: "$services",
+                                                sortBy: { date: -1 } // Ordenar por fecha descendente
+                                            }
+                                        },
                                         as: "service",
                                         cond: { $lte: ["$$service.date", threeMonthsAgo] }
                                     }
                                 },
-                                0
+                                0 // Tomar solo el último servicio que cumple la condición
                             ]
                         }
                     }
@@ -93,7 +98,7 @@ class MongoServicesRepository {
                     }
                 }
             ]);
-    
+
             // Validar que exista realmente el servicio para los miembros con servicios
             const validatedResult = result.map(entry => ({
                 DNI: entry.DNI,
@@ -106,14 +111,14 @@ class MongoServicesRepository {
                 Nombre: entry.firstName || "No registrado",
                 Apellido: entry.lastName || "No registrado"
             }));
-    
+
             return validatedResult;
         } catch (error) {
             console.error("Error fetching inactive members:", error);
             throw new Error("Error fetching inactive members");
         }
     }
-    
+
 
     async findLean() {
         const service = await ServicesModel.find().select('-avatar -_id -__v').lean();
@@ -158,7 +163,7 @@ class MongoServicesRepository {
             // Asegúrate de que el filtro sea una cadena válida
             const safeFilter = filter ? filter.trim() : '';
 
-            // Buscar documentos en MemberModel utilizando una búsqueda general
+            // Buscar documentos en MemberModel utilizando filtros por nombre, apellido o DNI
             const members = await MemberModel.find({
                 $or: [
                     { firstName: { $regex: safeFilter, $options: 'i' } },
@@ -172,7 +177,7 @@ class MongoServicesRepository {
 
             // Construir la consulta para ServicesModel basada en los `dni` encontrados y el filtro de servicio
             const query = {
-                ...(dniList.length > 0 && { dni: { $in: dniList } }),
+                ...(dniList.length > 0 && { dni: { $in: dniList } }), // Filtro por DNI
                 ...(safeFilter && { service: { $regex: safeFilter, $options: 'i' } }) // Filtro por tipo de servicio
             };
 
@@ -201,6 +206,7 @@ class MongoServicesRepository {
             throw new Error('Error al obtener los servicios'); // Propagar el error para manejo en niveles superiores
         }
     }
+
 
 
     async findById(_id) {
