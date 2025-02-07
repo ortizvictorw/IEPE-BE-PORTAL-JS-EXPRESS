@@ -365,7 +365,7 @@ const getServices = async (req, res) => {
   try {
     let services;
     if (filter) {
-      services = await servicesRepository.findByFilter(filter, page);
+      services = await servicesRepository.findByFilter(JSON.parse(filter), page);
     } else {
       services = await servicesRepository.find(page);
     }
