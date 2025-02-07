@@ -166,8 +166,8 @@ class MongoServicesRepository {
     
             // 📌 Agregar filtros de servicio dinámicamente si están en la query
             if (queryParams.coros) serviceFilters.push('COROS');
-            if (queryParams.predica) serviceFilters.push('PREDICA');
-            if (queryParams.dirigio) serviceFilters.push('DIRIGIO');
+            if (queryParams.predica) serviceFilters.push('PREDICACION');
+            if (queryParams.dirigio) serviceFilters.push('DIRIGE');
             if (queryParams.reflexion) serviceFilters.push('REFLEXION');
     
             let dniList = [];
